@@ -1,0 +1,82 @@
+[project]
+name = "app_name"
+version = "0.1.0"
+description = "A FastAPI + Vue3 application"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic-settings>=2.0",
+    "loguru>=0.7",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.2",
+]
+
+# ---------------------------------------------------------------------------
+# Dependency Groups (PEP 735) — uv native
+# ---------------------------------------------------------------------------
+[dependency-groups]
+dev = [
+    "poethepoet>=0.42",
+    "pytest>=9.0",
+    "pytest-asyncio>=1.3",
+    "pytest-cov>=7.0",
+    "ruff>=0.11",
+    "pre-commit>=4.0",
+    "python-semantic-release>=9.0",
+]
+
+# ---------------------------------------------------------------------------
+# Build System
+# ---------------------------------------------------------------------------
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app_name"]
+
+# ---------------------------------------------------------------------------
+# uv
+# ---------------------------------------------------------------------------
+[tool.uv]
+default-groups = ["dev"]
+
+# ---------------------------------------------------------------------------
+# Poe Tasks
+# ---------------------------------------------------------------------------
+[tool.poe.tasks]
+init = { cmd = "bash scripts/init.sh" }
+init-hooks = "pre-commit install"
+api = "python -m app_name.run_api"
+frontend = { cmd = "npm run dev", cwd = "src/frontend" }
+lint = "ruff check src/app_name"
+fmt = "ruff format src/app_name"
+test = "pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+# ---------------------------------------------------------------------------
+# Semantic Release
+# ---------------------------------------------------------------------------
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["src/app_name/main.py:__version__"]
+branch = "main"
+build_command = ""

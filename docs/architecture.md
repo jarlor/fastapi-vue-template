@@ -41,7 +41,7 @@ Contexts are isolated. They never import from each other directly. Cross-context
 
 ### AppRegistry
 
-A single `AppRegistry` dataclass (in `src/app_name/registry.py`) holds all shared infrastructure: database client, settings, event bus. It is created once during the FastAPI lifespan and stored in `app.state`.
+A single `AppRegistry` dataclass (in `src/app_name/core/registry.py`) holds all shared infrastructure: database client, settings, event bus. It is created once during the FastAPI lifespan and stored in `app.state`.
 
 ### FastAPI Depends
 
@@ -58,7 +58,7 @@ This keeps routers thin and services testable (swap the repo with a mock).
 
 ## Event Bus
 
-An in-process async event bus lives in `src/app_name/core/events.py`. It provides:
+An in-process async event bus lives in `src/app_name/shared/events/bus.py`. It provides:
 
 - `publish(event)` -- emit a domain event
 - `subscribe(event_type, handler)` -- register a handler
@@ -76,10 +76,10 @@ Pydantic Settings reads both and validates them into typed models. Secrets alway
 
 ## API Route Organisation
 
-| Prefix              | Purpose                         |
-|---------------------|---------------------------------|
-| `/api/v1/<context>` | Public REST endpoints           |
-| `/internal/`        | Health, metrics, admin (no auth)|
-| `/health`           | Liveness probe                  |
+| Prefix              | Purpose                              |
+|---------------------|--------------------------------------|
+| `/api/public/v1/`   | Public endpoints (health, etc.)      |
+| `/api/internal/v1/` | Internal management (auth required)  |
+| `/health`           | Root liveness probe                  |
 
-All public routes require a valid JWT. Internal routes are protected by network policy (not exposed externally).
+Public routes are unauthenticated. Internal routes require a valid JWT. Network policy may additionally restrict internal routes from external access.

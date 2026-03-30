@@ -1,17 +1,16 @@
 # app_name
 
-A production-ready project template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend), using **MongoDB** for persistence.
+A production-ready project template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend). Database integration is optional -- see [docs/database-patterns.md](docs/database-patterns.md).
 
 ## Tech Stack
 
 | Layer     | Technology                              |
 |-----------|-----------------------------------------|
-| Backend   | FastAPI, Motor (async MongoDB), Pydantic Settings, Loguru |
+| Backend   | FastAPI, Pydantic Settings V2, Loguru    |
 | Frontend  | Vue 3, Arco Design Web Vue, Vite, Pinia |
-| Auth      | PyJWT (access + refresh tokens)         |
 | Scheduler | Croniter                                |
 | Python    | >= 3.13, managed by **uv**              |
-| Tasks     | poethepoet                              |
+| Tasks     | poethepoet (via `uv run poe`)           |
 | Linting   | Ruff                                    |
 | Testing   | pytest, pytest-asyncio, pytest-cov      |
 
@@ -21,24 +20,21 @@ A production-ready project template built with **FastAPI** (backend) and **Vue 3
 
 ```bash
 # Clone this template, then rename the placeholder:
-./init.sh my_project_name    # must be a valid Python identifier (snake_case)
+uv run poe init my_project_name    # must be a valid Python identifier (snake_case)
 ```
 
 ### 2. Backend
 
 ```bash
-uv sync                      # install Python dependencies
-cp .env.example .env         # add your secrets
-poe api                      # start FastAPI on port 8665
+cp .env.example .env               # add your secrets
+uv run poe api                     # start FastAPI on port 8665
 ```
 
 ### 3. Frontend
 
 ```bash
-cd src/frontend
-npm install
-cd ../..
-poe frontend                 # start Vite dev server on port 8006
+cd src/frontend && npm install && cd ../..
+uv run poe frontend                # start Vite dev server on port 8006
 ```
 
 ## Directory Structure
@@ -48,25 +44,28 @@ poe frontend                 # start Vite dev server on port 8006
 ├── config.yaml              # non-sensitive defaults
 ├── .env.example             # secret template
 ├── pyproject.toml           # Python project & poe tasks
-├── init.sh                  # one-time project renaming script
+├── scripts/
+│   └── init.sh              # one-time project renaming script (via poe init)
 ├── docs/                    # architecture & development guides
 ├── src/
 │   ├── app_name/            # Python backend (FastAPI)
-│   │   ├── config/          # pydantic-settings + YAML merge
-│   │   ├── core/            # logging, security, events
-│   │   ├── api/             # route modules (public / internal)
+│   │   ├── main.py          # FastAPI app + lifespan
+│   │   ├── run_api.py       # uvicorn entry point
+│   │   ├── config.py        # pydantic-settings + YAML merge
+│   │   ├── core/            # registry, service_factory, logging, timezone
+│   │   ├── api/             # deps.py + route modules (public_v1 / internal_v1)
 │   │   ├── contexts/        # bounded contexts (domain modules)
+│   │   │   ├── _template/   # blank context template
 │   │   │   └── <context>/
-│   │   │       ├── domain/       # entities, value objects, ports
-│   │   │       ├── application/  # use cases, DTOs
-│   │   │       ├── infrastructure/ # adapters (Mongo repos, clients)
-│   │   │       └── interface/    # FastAPI routers
-│   │   ├── shared/          # cross-cutting: base classes, utils
-│   │   ├── registry.py      # AppRegistry for DI
-│   │   ├── main.py          # FastAPI app factory
-│   │   └── run_api.py       # uvicorn entry point
+│   │   │       ├── domain/       # entities, value objects
+│   │   │       ├── application/  # services, ports, use cases
+│   │   │       ├── infrastructure/ # repositories, gateways, adapters
+│   │   │       └── interface/    # FastAPI routers + schemas
+│   │   ├── shared/          # events bus, constants
+│   │   └── models/          # shared domain models
 │   └── frontend/            # Vue 3 + Arco Design + Vite
 ├── tests/
+│   ├── conftest.py
 │   ├── unit/
 │   └── integration/
 └── CLAUDE.md                # Claude Code instructions
@@ -78,30 +77,47 @@ Each domain module lives under `src/app_name/contexts/<context_name>/` with four
 
 | Layer          | Responsibility                          |
 |----------------|----------------------------------------|
-| domain/        | Entities, value objects, repository ports (abstract) |
-| application/   | Use cases, DTOs, orchestration          |
+| domain/        | Entities, value objects                 |
+| application/   | Services, ports (Protocol), use cases   |
 | infrastructure/| Concrete adapters (MongoDB, HTTP, etc.) |
 | interface/     | FastAPI routers, request/response models|
 
-Contexts **never** import from each other directly. Cross-context communication goes through the event bus or the application layer.
+Contexts **never** import from each other directly. Cross-context communication goes through the event bus or Ports.
 
-See `docs/module-development.md` for the full guide.
+See `docs/module-development.md` for the full guide, or `docs/walkthrough.md` for a step-by-step example.
 
 ## Poe Tasks
 
-| Task          | Command                                  |
-|---------------|------------------------------------------|
-| `poe api`     | Start backend (port 8665)                |
-| `poe frontend`| Start Vite dev server (port 8006)        |
-| `poe lint`    | Run Ruff linter                          |
-| `poe fmt`     | Run Ruff formatter                       |
-| `poe test`    | Run pytest with coverage                 |
+All tasks run via `uv run poe <task>`:
+
+| Task              | Command                                  |
+|-------------------|------------------------------------------|
+| `poe init <name>` | One-time project rename (app_name → name)|
+| `poe api`         | Start backend (port 8665)                |
+| `poe frontend`    | Start Vite dev server (port 8006)        |
+| `poe lint`        | Run Ruff linter                          |
+| `poe fmt`         | Run Ruff formatter                       |
+| `poe test`        | Run pytest with coverage                 |
+
+## Documentation
+
+| Doc | Content |
+|---|---|
+| [architecture.md](docs/architecture.md) | Layered architecture, DI, event bus |
+| [coding-standards.md](docs/coding-standards.md) | Naming, style, file constraints |
+| [module-development.md](docs/module-development.md) | How to create new contexts |
+| [context-contracts.md](docs/context-contracts.md) | Inter-context communication |
+| [api-conventions.md](docs/api-conventions.md) | REST API design conventions |
+| [frontend-standards.md](docs/frontend-standards.md) | Vue3 component/state/API standards |
+| [security-standards.md](docs/security-standards.md) | 11 security rules + checklist |
+| [testing-guide.md](docs/testing-guide.md) | TDD flow, pytest patterns |
+| [walkthrough.md](docs/walkthrough.md) | End-to-end feature creation example |
+| [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
 
 ## Using as a GitHub Template
 
-1. Click **Use this template** on GitHub (or fork).
-2. Clone the new repository.
-3. Run `./init.sh your_project_name`.
-4. Commit the result and start building.
-
-To mark this repo as a template on GitHub: **Settings > General > Template repository** (check the box).
+1. Push this repo to GitHub.
+2. Go to **Settings > General > Template repository** (check the box).
+3. Others (or yourself) can click **"Use this template"** to create a new repo.
+4. Or via CLI: `gh repo create my-project --template yourname/fastapi-vue-template --private --clone`
+5. Run `uv run poe init my_project` in the new repo.

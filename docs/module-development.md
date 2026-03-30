@@ -12,18 +12,27 @@ Create the following structure under `src/app_name/contexts/<context_name>/`:
 ├── domain/
 │   ├── __init__.py
 │   ├── entities.py          # domain entities & value objects
-│   └── ports.py             # abstract repository interfaces
+│   ├── value_objects.py     # immutable value types
+│   └── events.py            # domain events
 ├── application/
 │   ├── __init__.py
-│   ├── service.py           # use cases / application service
-│   └── dtos.py              # data transfer objects
+│   ├── ports/               # abstract interfaces (Protocol classes)
+│   │   └── __init__.py
+│   └── services/            # use cases / application services
+│       └── __init__.py
 ├── infrastructure/
 │   ├── __init__.py
-│   └── mongo_repository.py  # concrete adapter for MongoDB
+│   ├── repositories/        # data persistence implementations
+│   │   └── __init__.py
+│   ├── gateways/            # external service integrations
+│   │   └── __init__.py
+│   └── adapters/            # port implementations
+│       └── __init__.py
 └── interface/
     ├── __init__.py
-    ├── router.py             # FastAPI router
-    └── schemas.py            # request/response models
+    └── api/                  # FastAPI routers and schemas
+        ├── __init__.py
+        └── router.py
 ```
 
 ## Import Rules
@@ -45,20 +54,19 @@ Create the following structure under `src/app_name/contexts/<context_name>/`:
 
 ## Port / Adapter Pattern
 
-Define abstract ports in `domain/ports.py`:
+Define abstract ports in `application/ports/` using `Protocol`:
 
 ```python
-from abc import ABC, abstractmethod
+from typing import Protocol, runtime_checkable
 
-class ItemRepository(ABC):
-    @abstractmethod
+@runtime_checkable
+class ItemRepository(Protocol):
     async def find_by_id(self, item_id: str) -> Item | None: ...
 
-    @abstractmethod
     async def save(self, item: Item) -> Item: ...
 ```
 
-Implement the adapter in `infrastructure/mongo_repository.py`:
+Implement the adapter in `infrastructure/repositories/`:
 
 ```python
 class MongoItemRepository(ItemRepository):

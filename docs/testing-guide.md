@@ -22,8 +22,10 @@ Target **80 %+** code coverage.
 Run all tests:
 
 ```bash
-poe test
+uv run poe test
 ```
+
+> **Note**: All `poe` task commands should be prefixed with `uv run` (e.g. `uv run poe lint`, `uv run poe fmt`).
 
 ## Test Organisation
 

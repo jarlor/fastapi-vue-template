@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useAuth } from "@/composables/useAuth";
-
-const { currentUser } = useAuth();
+// Dashboard page — add data fetching and state here as needed
 </script>
 
 <template>
@@ -9,9 +7,7 @@ const { currentUser } = useAuth();
     <a-page-header title="Dashboard" subtitle="Overview" />
 
     <a-card class="welcome-card">
-      <template #title>
-        Welcome{{ currentUser ? `, ${currentUser.display_name || currentUser.account}` : "" }}
-      </template>
+      <template #title>Welcome</template>
       <p class="welcome-text">
         This is your dashboard. Replace this content with your application's main view.
       </p>

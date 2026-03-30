@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
 const router = useRouter();
-const { isAuthenticated, currentUser, logout } = useAuth();
-
-const showLayout = computed(() => route.name !== "Login");
 
 const menuItems = [
   { key: "/dashboard", label: "Dashboard", icon: "icon-dashboard" },
@@ -20,11 +15,7 @@ function onMenuSelect(key: string) {
 </script>
 
 <template>
-  <!-- Login page: no layout shell -->
-  <router-view v-if="!showLayout" />
-
-  <!-- Authenticated layout -->
-  <a-layout v-else class="app-layout">
+  <a-layout class="app-layout">
     <a-layout-sider class="app-sider" :width="220" collapsible>
       <div class="sider-logo">
         <span class="logo-text">App</span>
@@ -43,20 +34,9 @@ function onMenuSelect(key: string) {
     <a-layout>
       <a-layout-header class="app-header">
         <div class="header-content">
+          <span class="app-title">App</span>
           <div class="header-spacer" />
-          <div class="header-actions">
-            <span v-if="currentUser" class="user-info">
-              {{ currentUser.display_name || currentUser.account }}
-            </span>
-            <a-button
-              v-if="isAuthenticated"
-              type="text"
-              size="small"
-              @click="logout"
-            >
-              Logout
-            </a-button>
-          </div>
+          <!-- Add user info and logout here when implementing authentication -->
         </div>
       </a-layout-header>
 
@@ -103,19 +83,14 @@ function onMenuSelect(key: string) {
   height: 100%;
 }
 
+.app-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-1);
+}
+
 .header-spacer {
   flex: 1;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-info {
-  font-size: 14px;
-  color: var(--color-text-2);
 }
 
 .app-content {

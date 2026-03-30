@@ -9,10 +9,11 @@ How to add a new domain event:
 2. Publish it from your service: ``await event_bus.publish(MyEvent(...))``
 3. Subscribe a handler in ``core/service_factory.py`` during startup.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass(frozen=True)
@@ -21,4 +22,4 @@ class ExampleEvent:
 
     entity_id: str
     action: str
-    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))

@@ -1,10 +1,11 @@
 """
 Generic task run model for tracking background/pipeline operations.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 from uuid import uuid4
@@ -23,8 +24,8 @@ class TaskRun:
 
     task_id: str = field(default_factory=lambda: uuid4().hex)
     status: TaskStatus = TaskStatus.PENDING
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     error: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 

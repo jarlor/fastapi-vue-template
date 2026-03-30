@@ -1,4 +1,5 @@
 """Uvicorn runner for local development."""
+
 from __future__ import annotations
 
 import uvicorn

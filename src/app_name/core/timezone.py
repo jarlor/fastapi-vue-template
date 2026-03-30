@@ -1,7 +1,8 @@
 """Timezone helpers using the stdlib ``zoneinfo`` module."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 # Default timezone -- override via settings or env if needed.
@@ -10,7 +11,7 @@ DEFAULT_TZ = ZoneInfo("Asia/Shanghai")
 
 def now_utc() -> datetime:
     """Return the current UTC datetime (timezone-aware)."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def now_local(tz: ZoneInfo = DEFAULT_TZ) -> datetime:

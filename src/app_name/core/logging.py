@@ -3,6 +3,7 @@ Loguru logging setup.
 
 Call ``setup_logging()`` exactly once during application startup.
 """
+
 from __future__ import annotations
 
 import sys

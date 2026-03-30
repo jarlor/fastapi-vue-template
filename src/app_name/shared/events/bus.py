@@ -3,6 +3,7 @@ In-process event bus for decoupled domain event communication.
 
 Handlers are async callables; failures in one handler do not affect others.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -44,7 +45,7 @@ class InProcessEventBus:
         async def _safe_call(handler: EventHandler) -> None:
             try:
                 await asyncio.wait_for(handler(event), timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(
                     "Handler {} timed out after {:.1f}s for {}",
                     handler.__qualname__,

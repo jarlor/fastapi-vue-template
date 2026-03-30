@@ -3,6 +3,7 @@ Public API v1 router.
 
 Endpoints here are accessible without authentication.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter

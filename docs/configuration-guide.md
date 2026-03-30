@@ -54,7 +54,7 @@ cors:
 
 # ---- 前端 ----
 frontend:
-  base_url: "http://localhost:5173"
+  base_url: "http://localhost:8006"
 
 # ---- 日志 ----
 logging:

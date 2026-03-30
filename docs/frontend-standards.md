@@ -114,14 +114,14 @@ All API calls go through `src/api/index.ts` (or feature-specific files in `src/a
 
 ```typescript
 // api/models.ts
-import { http } from './index'
+import api, { type ApiResponse } from './index'
 
 export function listModels(params: ModelListParams) {
-  return http.get<PaginatedResponse<Model>>('/api/public/v1/models', { params })
+  return api.get<ApiResponse<PaginatedResponse<Model>>>('/models', { params })
 }
 
 export function updateModelStatus(id: string, status: string) {
-  return http.patch(`/api/internal/v1/models/${id}/status`, { status })
+  return api.patch<ApiResponse<Model>>(`/models/${id}/status`, { status })
 }
 ```
 
@@ -191,7 +191,7 @@ Mock API calls at the HTTP layer (e.g., mock axios), not at the implementation l
 
 ```typescript
 import { vi } from 'vitest'
-import { http } from '@/api'
+import api from '@/api'
 
-vi.spyOn(http, 'get').mockResolvedValue({ data: { data: mockModels, total: 1 } })
+vi.spyOn(api, 'get').mockResolvedValue({ data: { code: 0, success: true, data: mockModels, message: 'OK' } })
 ```

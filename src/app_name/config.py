@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
 # ---------------------------------------------------------------------------
@@ -28,20 +28,51 @@ class OpenAIConfig(BaseModel):
 
 
 class CORSConfig(BaseModel):
-    allow_origins: list[str] = ["http://localhost:5173"]
+    allow_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:8006"],
+        validation_alias=AliasChoices("allow_origins", "origins"),
+    )
     allow_credentials: bool = True
-    allow_methods: list[str] = ["*"]
-    allow_headers: list[str] = ["*"]
+    allow_methods: list[str] = Field(default_factory=lambda: ["*"])
+    allow_headers: list[str] = Field(default_factory=lambda: ["*"])
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_legacy_values(cls, data: Any) -> Any:
+        """Accept the legacy ``origins`` key used by earlier config.yaml files."""
+        if not isinstance(data, dict) or "allow_origins" in data or "origins" not in data:
+            return data
+
+        normalized = dict(data)
+        normalized["allow_origins"] = normalized.pop("origins")
+        return normalized
 
 
 class ServerConfig(BaseModel):
     host: str = "0.0.0.0"
-    port: int = 8000
-    reload: bool = False
+    port: int = 8665
+    reload: bool = True
 
 
 class FrontendConfig(BaseModel):
-    base_url: str = "http://localhost:5173"
+    base_url: str = "http://localhost:8006"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_legacy_values(cls, data: Any) -> Any:
+        """Accept legacy host/dev_port config and normalize it to base_url."""
+        if not isinstance(data, dict) or "base_url" in data:
+            return data
+
+        host = data.get("host")
+        dev_port = data.get("dev_port")
+        if not host or not dev_port:
+            return data
+
+        resolved_host = "localhost" if host in {"0.0.0.0", "::"} else host
+        normalized = dict(data)
+        normalized["base_url"] = f"http://{resolved_host}:{dev_port}"
+        return normalized
 
 
 class LoggingConfig(BaseModel):
@@ -102,6 +133,39 @@ class Settings(BaseSettings):
     frontend: FrontendConfig = FrontendConfig()
     logging: LoggingConfig = LoggingConfig()
 
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_legacy_nested_keys(cls, data: Any) -> Any:
+        """Resolve legacy nested config keys after settings sources are merged."""
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+
+        cors_data = normalized.get("cors")
+        if isinstance(cors_data, dict) and "origins" in cors_data:
+            normalized["cors"] = {
+                **cors_data,
+                "allow_origins": cors_data["origins"],
+            }
+
+        frontend_data = normalized.get("frontend")
+        if (
+            isinstance(frontend_data, dict)
+            and "base_url" not in frontend_data
+            and frontend_data.get("host")
+            and frontend_data.get("dev_port")
+        ):
+            resolved_host = (
+                "localhost" if frontend_data["host"] in {"0.0.0.0", "::"} else frontend_data["host"]
+            )
+            normalized["frontend"] = {
+                **frontend_data,
+                "base_url": f"http://{resolved_host}:{frontend_data['dev_port']}",
+            }
+
+        return normalized
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -112,10 +176,10 @@ class Settings(BaseSettings):
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         return (
+            init_settings,
             env_settings,
             dotenv_settings,
             YamlConfigSettingsSource(settings_cls),
-            init_settings,
         )
 
 

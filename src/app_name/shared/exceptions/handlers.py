@@ -15,17 +15,14 @@ from loguru import logger
 
 from app_name.shared.exceptions.business_error import BusinessError
 from app_name.shared.exceptions.error_codes import ErrorCode
+from app_name.shared.schemas.response import APIResponse
 
 
 async def business_error_handler(_request: Request, exc: BusinessError) -> JSONResponse:
     """Return a structured 200 response for known business errors."""
     return JSONResponse(
         status_code=200,
-        content={
-            "code": exc.code,
-            "success": False,
-            "message": exc.message,
-        },
+        content=APIResponse.error(code=exc.code, message=exc.message).model_dump(),
     )
 
 
@@ -42,11 +39,10 @@ async def validation_error_handler(
 
     return JSONResponse(
         status_code=422,
-        content={
-            "code": int(ErrorCode.VALIDATION_ERROR),
-            "success": False,
-            "message": "; ".join(messages),
-        },
+        content=APIResponse.error(
+            code=int(ErrorCode.VALIDATION_ERROR),
+            message="; ".join(messages),
+        ).model_dump(),
     )
 
 
@@ -55,11 +51,10 @@ async def unhandled_error_handler(_request: Request, exc: Exception) -> JSONResp
     logger.error("Unhandled exception:\n{}", traceback.format_exc())
     return JSONResponse(
         status_code=500,
-        content={
-            "code": int(ErrorCode.UNKNOWN_ERROR),
-            "success": False,
-            "message": ErrorCode.UNKNOWN_ERROR.message,
-        },
+        content=APIResponse.error(
+            code=int(ErrorCode.UNKNOWN_ERROR),
+            message=ErrorCode.UNKNOWN_ERROR.message,
+        ).model_dump(),
     )
 
 

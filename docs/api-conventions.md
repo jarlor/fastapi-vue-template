@@ -3,19 +3,18 @@
 ## URL Structure
 
 ```
-/api/{scope}/v1/{context}/{resource}
+/api/v1/{context}/{resource}
 ```
 
 | Segment | Values | Description |
 |---------|--------|-------------|
-| `scope` | `public`, `internal` | `public` = no auth required; `internal` = bearer token required |
 | `v1` | Version prefix | Increment for breaking changes |
 | `context` | Bounded context name | e.g., `auth`, `models`, `pipeline` |
 | `resource` | Plural noun | e.g., `users`, `tokens`, `tasks` |
 
 Examples:
-- `GET /api/public/v1/models/` -- list models (no auth)
-- `POST /api/internal/v1/pipeline/tasks` -- create task (auth required)
+- `GET /api/v1/models` -- list models
+- `POST /api/v1/pipeline/tasks` -- create task
 
 ## HTTP Methods
 
@@ -26,7 +25,7 @@ Examples:
 | PATCH | Partial update | Yes | Yes (partial) |
 | DELETE | Remove resource | Yes | No |
 
-Use POST for actions that do not map to CRUD (e.g., `POST /api/internal/v1/pipeline/run`).
+Use POST for actions that do not map to CRUD (e.g., `POST /api/v1/pipeline/run`).
 
 ## Status Codes
 
@@ -48,6 +47,8 @@ Use POST for actions that do not map to CRUD (e.g., `POST /api/internal/v1/pipel
 
 ```json
 {
+  "code": 0,
+  "success": true,
   "data": { "id": "abc123", "name": "Example" },
   "message": "OK"
 }
@@ -57,6 +58,8 @@ Use POST for actions that do not map to CRUD (e.g., `POST /api/internal/v1/pipel
 
 ```json
 {
+  "code": 0,
+  "success": true,
   "data": [
     { "id": "abc123", "name": "Example" }
   ],
@@ -70,21 +73,21 @@ Use POST for actions that do not map to CRUD (e.g., `POST /api/internal/v1/pipel
 
 ```json
 {
-  "detail": "Resource not found"
+  "code": 10042,
+  "success": false,
+  "data": null,
+  "message": "Resource not found"
 }
 ```
 
-For validation errors (422), FastAPI returns its default format:
+For validation errors (422), the project returns the same envelope:
 
 ```json
 {
-  "detail": [
-    {
-      "loc": ["body", "email"],
-      "msg": "field required",
-      "type": "value_error.missing"
-    }
-  ]
+  "code": 10000,
+  "success": false,
+  "data": null,
+  "message": "body -> email: Field required"
 }
 ```
 
@@ -110,13 +113,13 @@ The response includes `total`, `page`, and `limit` fields alongside `data`.
 Use query parameters matching field names:
 
 ```
-GET /api/public/v1/models?status=approved&category=nlp
+GET /api/v1/models?status=approved&category=nlp
 ```
 
 For date ranges, use `_from` and `_to` suffixes:
 
 ```
-GET /api/internal/v1/pipeline/tasks?created_from=2024-01-01&created_to=2024-01-31
+GET /api/v1/pipeline/tasks?created_from=2024-01-01&created_to=2024-01-31
 ```
 
 ## Sorting
@@ -127,7 +130,7 @@ GET /api/internal/v1/pipeline/tasks?created_from=2024-01-01&created_to=2024-01-3
 | `sort_order` | string | `desc` | `asc` or `desc` |
 
 ```
-GET /api/public/v1/models?sort_by=name&sort_order=asc
+GET /api/v1/models?sort_by=name&sort_order=asc
 ```
 
 ## Versioning
@@ -139,11 +142,9 @@ Version is embedded in the URL path: `/v1`, `/v2`, etc. Increment the version on
 Each bounded context provides its own `FastAPI APIRouter`. Routers are mounted in the application factory:
 
 ```python
-# Public routes (no auth)
-app.include_router(models_public_router, prefix="/api/public/v1/models", tags=["models"])
-
-# Internal routes (auth required)
-app.include_router(pipeline_internal_router, prefix="/api/internal/v1/pipeline", tags=["pipeline"])
+# Versioned routes
+app.include_router(models_router, prefix="/api/v1/models", tags=["models"])
+app.include_router(pipeline_router, prefix="/api/v1/pipeline", tags=["pipeline"])
 ```
 
 ## Route Definition Rules

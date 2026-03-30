@@ -41,7 +41,7 @@ Contexts are isolated. They never import from each other directly. Cross-context
 
 ### AppRegistry
 
-A single `AppRegistry` dataclass (in `src/app_name/core/registry.py`) holds all shared infrastructure: database client, settings, event bus. It is created once during the FastAPI lifespan and stored in `app.state`.
+A single `AppRegistry` dataclass (in `src/app_name/core/registry.py`) holds shared infrastructure such as settings, event bus, and optional service factories or database handles. It is created once during the FastAPI lifespan and stored in `app.state`.
 
 ### FastAPI Depends
 
@@ -50,7 +50,7 @@ Route handlers receive use cases via `Depends()`. Each dependency function reads
 ```python
 def get_user_service(request: Request) -> UserService:
     registry: AppRegistry = request.app.state.registry
-    repo = MongoUserRepository(registry.db["users"])
+    repo = MongoUserRepository(registry.db.get_collection("users"))
     return UserService(repo)
 ```
 
@@ -72,14 +72,13 @@ Configuration merges two sources (lower number = higher priority):
 1. **Environment variables** (`.env` file, loaded via `python-dotenv`)
 2. **config.yaml** (non-sensitive defaults)
 
-Pydantic Settings reads both and validates them into typed models. Secrets always come from `.env`; non-sensitive values live in `config.yaml`.
+Pydantic Settings reads both and validates them into typed models. Secrets always come from `.env`; non-sensitive values live in `config.yaml`. The template exposes a `create_app(settings=...)` factory so tests and scripts can inject settings explicitly instead of relying on module import side effects.
 
 ## API Route Organisation
 
-| Prefix              | Purpose                              |
-|---------------------|--------------------------------------|
-| `/api/public/v1/`   | Public endpoints (health, etc.)      |
-| `/api/internal/v1/` | Internal management (auth required)  |
-| `/health`           | Root liveness probe                  |
+| Prefix      | Purpose                              |
+|-------------|--------------------------------------|
+| `/api/v1/`  | Versioned application API            |
+| `/health`   | Root liveness probe                  |
 
-Public routes are unauthenticated. Internal routes require a valid JWT. Network policy may additionally restrict internal routes from external access.
+The template keeps a single `/api/v1` surface. If a project later needs public/internal separation, add it deliberately in that project instead of carrying the complexity in the base template.

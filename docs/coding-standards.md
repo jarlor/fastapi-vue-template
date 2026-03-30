@@ -66,7 +66,7 @@ from datetime import datetime
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorCollection
 
-from src.backend.contexts.auth.service import AuthService
+from app_name.contexts.auth.application.services.auth_service import AuthService
 ```
 
 ## File Organization

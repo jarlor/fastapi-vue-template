@@ -14,6 +14,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
+from app_name.config import Settings
+
 __version__ = "0.1.0"
 
 
@@ -46,8 +48,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Shutdown complete")
 
 
-def create_app() -> FastAPI:
+def create_app(settings: Settings | None = None) -> FastAPI:
     """Build and return the FastAPI application instance."""
+    if settings is None:
+        from app_name.config import get_settings
+
+        settings = get_settings()
+
     app = FastAPI(
         title="app_name",
         version=__version__,
@@ -60,10 +67,8 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     # --- Middleware (outermost first) ---
-    from app_name.config import get_settings
     from app_name.shared.middleware.request_context import RequestContextMiddleware
 
-    settings = get_settings()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors.allow_origins,
@@ -74,11 +79,9 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestContextMiddleware)
 
     # --- Routers ---
-    from app_name.api.internal_v1.router import router as internal_v1_router
-    from app_name.api.public_v1.router import router as public_v1_router
+    from app_name.api.v1.router import router as v1_router
 
-    app.include_router(public_v1_router)
-    app.include_router(internal_v1_router)
+    app.include_router(v1_router)
 
     # --- Health check ---
     from app_name.shared.schemas.response import APIResponse
@@ -88,6 +91,3 @@ def create_app() -> FastAPI:
         return APIResponse.ok(data={"status": "ok", "version": __version__}).model_dump()
 
     return app
-
-
-app = create_app()

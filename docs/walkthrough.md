@@ -177,13 +177,11 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 from app_name.contexts.catalog.application.services.catalog_service import CatalogService
-# 如需认证，参考 docs/extra/auth-patterns.md 集成后取消注释:
-# from app_name.api.deps import require_auth
-from app_name.contexts.catalog.domain.entities import Category
+from app_name.shared.schemas.response import APIResponse
 
 
 router = APIRouter(prefix="/catalogs", tags=["catalogs"])
@@ -206,7 +204,7 @@ class CategoryResponse(BaseModel):
 
 # --- Dependency (局部接线) ---
 
-def get_catalog_service(request) -> CatalogService:
+def get_catalog_service(request: Request) -> CatalogService:
     from app_name.contexts.catalog.infrastructure.repositories.mongo_catalog_repo import (
         MongoCatalogRepository,
     )
@@ -218,36 +216,36 @@ def get_catalog_service(request) -> CatalogService:
 
 # --- Endpoints ---
 
-@router.get("", response_model=list[CategoryResponse])
+@router.get("", response_model=APIResponse[list[CategoryResponse]])
 async def list_categories(
     service: Annotated[CatalogService, Depends(get_catalog_service)],
-) -> list[CategoryResponse]:
+) -> APIResponse[list[CategoryResponse]]:
     categories = await service.list_categories()
-    return [CategoryResponse(**vars(c)) for c in categories]
+    return APIResponse.ok(data=[CategoryResponse(**vars(c)) for c in categories])
 
 
-@router.post("", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=APIResponse[CategoryResponse], status_code=status.HTTP_201_CREATED)
 async def create_category(
     body: CreateCategoryRequest,
     service: Annotated[CatalogService, Depends(get_catalog_service)],
-) -> CategoryResponse:
+) -> APIResponse[CategoryResponse]:
     category = await service.create_category(
         name=body.name,
         description=body.description,
         parent_id=body.parent_id,
     )
-    return CategoryResponse(**vars(category))
+    return APIResponse.ok(data=CategoryResponse(**vars(category)))
 
 
-@router.get("/{category_id}", response_model=CategoryResponse)
+@router.get("/{category_id}", response_model=APIResponse[CategoryResponse])
 async def get_category(
     category_id: str,
     service: Annotated[CatalogService, Depends(get_catalog_service)],
-) -> CategoryResponse:
+) -> APIResponse[CategoryResponse]:
     category = await service.get_category(category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
-    return CategoryResponse(**vars(category))
+    return APIResponse.ok(data=CategoryResponse(**vars(category)))
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -268,33 +266,32 @@ async def delete_category(
 ## Step 7: 注册路由
 
 ```python
-# 在 src/app_name/api/internal_v1/router.py 中添加:
+# 在 src/app_name/api/v1/router.py 中添加:
 from app_name.contexts.catalog.interface.api.catalog_router import router as catalog_router
 
 router.include_router(catalog_router)
-# 如需认证保护，集成 auth 后改为:
-# router.include_router(catalog_router, dependencies=[Depends(require_auth)])
 ```
 
-如果是公开 API，则加到 `public_v1/router.py`。
+模板默认只保留一个 `/api/v1` 前缀；如果你的项目后续需要拆成 public/internal，再在具体项目里引入。
 
 ## Step 8: 前端 — 添加 API 函数
 
 ```typescript
 // 在 src/frontend/src/api/index.ts 中添加:
+import api, { type ApiResponse } from './index'
 
 // --- Catalog ---
 export const listCategories = () =>
-  http.get<CategoryResponse[]>('/catalogs')
+  api.get<ApiResponse<CategoryResponse[]>>('/catalogs')
 
 export const createCategory = (data: { name: string; description: string; parent_id?: string }) =>
-  http.post<CategoryResponse>('/catalogs', data)
+  api.post<ApiResponse<CategoryResponse>>('/catalogs', data)
 
 export const getCategory = (id: string) =>
-  http.get<CategoryResponse>(`/catalogs/${id}`)
+  api.get<ApiResponse<CategoryResponse>>(`/catalogs/${id}`)
 
 export const deleteCategory = (id: string) =>
-  http.delete(`/catalogs/${id}`)
+  api.delete(`/catalogs/${id}`)
 
 interface CategoryResponse {
   category_id: string
@@ -354,7 +351,8 @@ async def test_list_categories(mock_repo):
 - [ ] Service 只依赖 Port，不依赖 infrastructure
 - [ ] Infrastructure 实现 Port 接口
 - [ ] Router 中 schemas 用 Pydantic BaseModel
-- [ ] 路由已注册到 internal_v1 或 public_v1
+- [ ] API 返回统一的 `APIResponse` envelope
+- [ ] 路由已注册到 `api/v1`
 - [ ] 前端 API 函数走 `src/api/index.ts`
 - [ ] 前端路由已添加
 - [ ] 单元测试覆盖 Service 核心逻辑

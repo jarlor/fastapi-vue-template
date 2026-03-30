@@ -51,7 +51,7 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   │   ├── run_api.py       # uvicorn entry point
 │   │   ├── config.py        # pydantic-settings + YAML merge
 │   │   ├── core/            # registry, service_factory, logging, timezone
-│   │   ├── api/             # deps.py + route modules (public_v1 / internal_v1)
+│   │   ├── api/             # deps.py + versioned route modules
 │   │   ├── contexts/        # bounded contexts (domain modules)
 │   │   │   ├── _template/   # blank context template
 │   │   │   └── <context>/
@@ -96,6 +96,13 @@ All tasks run via `uv run poe <task>`:
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
 | `poe test`        | Run pytest with coverage                 |
+
+## Template Defaults
+
+- `src/app_name/main.py` exposes a `create_app()` factory. The dev runner uses `uvicorn` factory mode instead of importing a module-level app singleton.
+- Successful API responses use the shared `APIResponse` envelope: `{ code, success, data, message }`.
+- The template uses a single versioned API prefix: `/api/v1`.
+- `config.yaml` uses `cors.allow_origins` and `frontend.base_url`. Legacy keys are still accepted for compatibility, but new code should use the canonical names.
 
 ## Documentation
 

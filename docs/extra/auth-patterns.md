@@ -373,10 +373,10 @@ auth:
 AUTH__SECRET_KEY=your-production-secret-here
 ```
 
-### 9. 注册到 internal_v1 router
+### 9. 注册到 v1 router
 
 ```python
-# src/app_name/api/internal_v1/router.py
+# src/app_name/api/v1/router.py
 from app_name.contexts.auth.interface.api.auth_router import router as auth_router
 
 router.include_router(auth_router)
@@ -742,7 +742,7 @@ async function handleLogin() {
 - [ ] 在 `.env` 添加 `AUTH__SECRET_KEY`
 - [ ] 在 `AppRegistry` 添加 `auth_service` 字段
 - [ ] 在 `service_factory.py` 创建并注入 AuthService
-- [ ] 在 `internal_v1/router.py` 注册 auth_router
+- [ ] 在 `api/v1/router.py` 注册 auth_router
 - [ ] 需要认证的路由添加 `Depends(require_auth)`
 
 ### 前端

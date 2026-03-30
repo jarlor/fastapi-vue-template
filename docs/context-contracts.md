@@ -13,7 +13,7 @@ Every bounded context must define a contract using this template. Keep it in `do
 ```markdown
 ### {Context Name}
 
-**Location:** `src/backend/contexts/{context_name}/`
+**Location:** `src/app_name/contexts/{context_name}/`
 
 #### Public Interfaces
 
@@ -61,7 +61,7 @@ External services this context requires, defined as Protocol/ABC interfaces.
 
 ### Auth
 
-**Location:** `src/backend/contexts/auth/`
+**Location:** `src/app_name/contexts/auth/`
 
 #### Public Interfaces
 

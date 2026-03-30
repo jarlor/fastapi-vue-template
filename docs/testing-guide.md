@@ -72,8 +72,8 @@ col.find = MagicMock(return_value=cursor)
 
 The root `tests/conftest.py` provides three core fixtures:
 
-1. **mock_db** -- A `MagicMock` that acts as a Motor database, returning mock collections via `__getitem__`.
-2. **test_settings** -- A settings object with safe defaults for testing.
-3. **test_client** -- An `httpx.AsyncClient` wired to the FastAPI app with mocked dependencies.
+1. **mock_db** -- A `MagicMock` that acts as a future database handle, returning mock collections via `__getitem__`.
+2. **test_settings** -- A `Settings` object created explicitly in memory, without reading `.env` or `config.yaml`.
+3. **test_client** -- An `httpx.AsyncClient` wired to `create_app(settings=...)` for integration tests.
 
 See `tests/conftest.py` for the full implementation.

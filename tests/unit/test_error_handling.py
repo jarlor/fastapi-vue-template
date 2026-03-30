@@ -43,11 +43,13 @@ class TestAPIResponse:
         assert resp.code == 0
         assert resp.success is True
         assert resp.data == {"id": "1"}
+        assert resp.message == "OK"
 
     def test_ok_no_data(self) -> None:
         resp = APIResponse.ok()
         assert resp.success is True
         assert resp.data is None
+        assert resp.message == "OK"
 
     def test_error(self) -> None:
         resp = APIResponse.error(code=10099, message="unexpected")
@@ -62,3 +64,4 @@ class TestAPIResponse:
         assert d["code"] == 0
         assert d["success"] is True
         assert d["data"] == {"key": "value"}
+        assert d["message"] == "OK"

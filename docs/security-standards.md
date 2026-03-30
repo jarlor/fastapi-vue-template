@@ -63,7 +63,7 @@ Module-level code must not instantiate `Settings()`, open database connections, 
 
 ### 8. Bearer Token Authentication
 
-All internal management API endpoints require `Authorization: Bearer <token>` authentication. Public endpoints must be explicitly marked and documented.
+Any endpoint that requires authentication must use `Authorization: Bearer <token>` and be documented explicitly. The base template does not pre-classify routes as public vs internal.
 
 ### 9. No Hardcoded Credentials
 
@@ -96,7 +96,7 @@ Before every commit, verify:
 - [ ] All user input validated via Pydantic or Path/Query
 - [ ] All regex built from user input uses `re.escape()`
 - [ ] Error responses do not leak internal details
-- [ ] Auth required on all internal endpoints
+- [ ] Auth is enforced on every endpoint that is meant to be protected
 - [ ] No MD5 used for security purposes
 - [ ] Secret key length >= 32 chars and not default
 - [ ] `.env` and credential files are in `.gitignore`

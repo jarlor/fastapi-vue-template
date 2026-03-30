@@ -7,13 +7,12 @@ server:
   reload: true
 
 cors:
-  origins:
+  allow_origins:
     - "http://localhost:5173"
     - "http://localhost:8006"
 
 frontend:
-  host: "0.0.0.0"
-  dev_port: 8006
+  base_url: "http://localhost:8006"
 
 logging:
   level: "INFO"                # DEBUG / INFO / WARNING / ERROR

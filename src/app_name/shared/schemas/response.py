@@ -14,9 +14,9 @@ class APIResponse[T](BaseModel):
     message: str | None = None
 
     @classmethod
-    def ok(cls, data: T | None = None) -> APIResponse[T]:
-        return cls(code=0, success=True, data=data)
+    def ok(cls, data: T | None = None, message: str = "OK") -> APIResponse[T]:
+        return cls(code=0, success=True, data=data, message=message)
 
     @classmethod
     def error(cls, code: int, message: str) -> APIResponse[None]:
-        return cls(code=code, success=False, message=message)
+        return cls(code=code, success=False, data=None, message=message)

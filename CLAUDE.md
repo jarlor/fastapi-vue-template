@@ -16,15 +16,14 @@ FastAPI + Vue 3 / Arco Design / Vite 全栈项目模板。
 
 | File / Dir | Purpose |
 |---|---|
-| `src/app_name/main.py` | FastAPI app + lifespan (启动入口) |
-| `src/app_name/run_api.py` | Uvicorn runner |
+| `src/app_name/main.py` | FastAPI app factory + lifespan (启动入口) |
+| `src/app_name/run_api.py` | Uvicorn runner (`factory=True`) |
 | `src/app_name/config.py` | Pydantic Settings V2 + YAML 多源配置 + 延迟单例 |
 | `src/app_name/core/registry.py` | AppRegistry — DI 容器 (dataclass) |
 | `src/app_name/core/service_factory.py` | build_registry() + partial() 工厂 |
 | `src/app_name/core/logging.py` | Loguru 日志初始化 (startup 时调用一次) |
 | `src/app_name/api/deps.py` | FastAPI Depends 依赖提供者 (registry) |
-| `src/app_name/api/public_v1/` | 公开 API 路由 (无认证) |
-| `src/app_name/api/internal_v1/` | 内部管理 API |
+| `src/app_name/api/v1/` | 版本化 API 路由 |
 | `src/app_name/contexts/` | 限界上下文 (业务模块) |
 | `src/app_name/contexts/_template/` | 空白上下文模板 (四层目录 + README) |
 | `src/app_name/shared/events/bus.py` | 进程内异步事件总线 |
@@ -55,6 +54,11 @@ main.py lifespan
       → _get_registry(request)      ← 从 app.state.registry 取
         → registry.xxx_factory()    ← 返回服务实例
 ```
+
+当前模板还额外约束两点：
+
+- `create_app()` 可接收显式 `Settings`，测试和脚本优先用这个方式注入配置，不要依赖 import 副作用。
+- 模板默认只保留一个 `/api/v1` 前缀；是否需要公开/内部拆分，由具体项目自行决定。
 
 ## Module Decoupling Rules
 
@@ -121,3 +125,4 @@ uv run poe test       # pytest + coverage
 4. **不要硬编码密钥** — 走 .env 或环境变量
 5. **不要跳过类型标注** — 所有公开函数必须有 type hints
 6. **不要直接在组件中调 axios** — 走 `src/api/index.ts` 封装层
+7. **不要恢复模块级 app 单例** — 保持 app factory 形式，避免 import 时读取配置 / 文件

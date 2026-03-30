@@ -97,11 +97,11 @@ Wire the context in a `depends.py` or directly in the router:
 ```python
 def get_item_service(request: Request) -> ItemService:
     registry = request.app.state.registry
-    repo = MongoItemRepository(registry.db["items"])
+    repo = MongoItemRepository(registry.db.get_collection("items"))
     return ItemService(repo)
 ```
 
-Use `Depends(get_item_service)` in route handlers.
+Use `Depends(get_item_service)` in route handlers. If your project has not integrated a database yet, keep the same dependency shape but substitute an in-memory or mocked adapter.
 
 ## File Constraints
 

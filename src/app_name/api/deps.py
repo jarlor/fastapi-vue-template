@@ -7,6 +7,8 @@ stored on ``app.state.registry``.
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import HTTPException, Request, status
 
 from app_name.core.registry import AppRegistry

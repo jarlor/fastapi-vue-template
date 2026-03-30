@@ -19,21 +19,19 @@ A production-ready project template built with **FastAPI** (backend) and **Vue 3
 ### 1. Initialise the project
 
 ```bash
-# Clone this template, then rename the placeholder:
-uv run poe init my_project_name    # must be a valid Python identifier (snake_case)
+# Clone this template, then run init (auto-derives name from directory):
+uv run poe init                    # my-project/ → my_project
+# Or specify explicitly:
+uv run poe init my_project_name
 ```
 
-### 2. Backend
+This single command: renames all `app_name` references, syncs Python deps, installs npm packages, and sets up pre-commit hooks.
+
+### 2. Start developing
 
 ```bash
 cp .env.example .env               # add your secrets
 uv run poe api                     # start FastAPI on port 8665
-```
-
-### 3. Frontend
-
-```bash
-cd src/frontend && npm install && cd ../..
 uv run poe frontend                # start Vite dev server on port 8006
 ```
 
@@ -92,7 +90,7 @@ All tasks run via `uv run poe <task>`:
 
 | Task              | Command                                  |
 |-------------------|------------------------------------------|
-| `poe init <name>` | One-time project rename (app_name → name)|
+| `poe init [name]` | One-time init: rename + deps + hooks (name auto-derived if omitted)|
 | `poe api`         | Start backend (port 8665)                |
 | `poe frontend`    | Start Vite dev server (port 8006)        |
 | `poe lint`        | Run Ruff linter                          |
@@ -120,4 +118,4 @@ All tasks run via `uv run poe <task>`:
 2. Go to **Settings > General > Template repository** (check the box).
 3. Others (or yourself) can click **"Use this template"** to create a new repo.
 4. Or via CLI: `gh repo create my-project --template yourname/fastapi-vue-template --private --clone`
-5. Run `uv run poe init my_project` in the new repo.
+5. Run `uv run poe init` in the new repo (auto-derives name from directory).

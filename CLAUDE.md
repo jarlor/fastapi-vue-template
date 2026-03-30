@@ -3,7 +3,7 @@
 ## What This Is
 
 FastAPI + Vue 3 / Arco Design / Vite 全栈项目模板。
-使用 `app_name` 作为占位符包名，运行 `uv run poe init <project_name>` 替换为真实项目名。
+使用 `app_name` 作为占位符包名，运行 `uv run poe init` 自动从目录名推导项目名并完成初始化。
 
 ## Tech Stack
 

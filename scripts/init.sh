@@ -4,10 +4,14 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # init.sh  --  One-time project initialisation
 #
-# Usage:  uv run poe init <project_name>
+# Usage:  uv run poe init [project_name]
 #
-# Replaces the "app_name" placeholder throughout the repository with the
-# supplied project name, renames directories, and runs uv sync.
+# If project_name is omitted, derives it from the directory name:
+#   my-project → my_project
+#   MyProject  → myproject
+#
+# Replaces the "app_name" placeholder, renames directories, syncs deps,
+# and installs pre-commit hooks.
 # ---------------------------------------------------------------------------
 
 RED='\033[0;31m'
@@ -15,31 +19,36 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Colour
 
-if [[ $# -lt 1 ]]; then
-    echo -e "${RED}Usage: uv run poe init <project_name>${NC}"
-    echo "  project_name must be a valid Python identifier (lowercase, snake_case)."
-    exit 1
-fi
+# Navigate to project root (one level up from scripts/)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
-PROJECT_NAME="$1"
+# ---------------------------------------------------------------------------
+# Resolve project name
+# ---------------------------------------------------------------------------
+if [[ $# -ge 1 ]]; then
+    PROJECT_NAME="$1"
+else
+    # Derive from directory name: kebab-case → snake_case, lowercase
+    DIR_NAME="$(basename "$(pwd)")"
+    PROJECT_NAME="$(echo "$DIR_NAME" | tr '[:upper:]' '[:lower:]' | tr '-' '_' | tr -cd 'a-z0-9_')"
+    echo -e "${CYAN}No project name given, derived '${PROJECT_NAME}' from directory '${DIR_NAME}'${NC}"
+fi
 
 # Validate: must be a valid Python / shell-safe identifier (snake_case).
 if [[ ! "$PROJECT_NAME" =~ ^[a-z][a-z0-9_]*$ ]]; then
     echo -e "${RED}Error: '${PROJECT_NAME}' is not a valid Python identifier.${NC}"
     echo "  Use lowercase letters, digits, and underscores. Must start with a letter."
+    echo "  You can pass the name explicitly: uv run poe init my_project"
     exit 1
 fi
-
-# Navigate to project root (one level up from scripts/)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/.."
 
 echo -e "${CYAN}Initialising project as '${PROJECT_NAME}' ...${NC}"
 
 # ---------------------------------------------------------------------------
 # 1. Replace "app_name" in file contents (skip .git, node_modules, .venv)
 # ---------------------------------------------------------------------------
-echo "  Replacing 'app_name' in file contents ..."
+echo "  [1/5] Replacing 'app_name' in file contents ..."
 
 export LC_ALL=C
 find . \
@@ -66,18 +75,40 @@ done
 # 2. Rename the source directory
 # ---------------------------------------------------------------------------
 if [[ -d "src/app_name" ]]; then
-    echo "  Renaming src/app_name/ -> src/${PROJECT_NAME}/ ..."
+    echo "  [2/5] Renaming src/app_name/ -> src/${PROJECT_NAME}/ ..."
     mv "src/app_name" "src/${PROJECT_NAME}"
+else
+    echo "  [2/5] Source directory already renamed, skipping ..."
 fi
 
 # ---------------------------------------------------------------------------
 # 3. Re-sync dependencies (package name changed in pyproject.toml)
 # ---------------------------------------------------------------------------
 if command -v uv &>/dev/null; then
-    echo "  Running uv sync ..."
+    echo "  [3/5] Running uv sync ..."
     uv sync
 else
-    echo "  uv not found -- skipping dependency install. Run 'uv sync' manually."
+    echo "  [3/5] uv not found -- skipping. Run 'uv sync' manually."
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Install frontend dependencies
+# ---------------------------------------------------------------------------
+if [[ -f "src/frontend/package.json" ]]; then
+    echo "  [4/5] Installing frontend dependencies ..."
+    (cd src/frontend && npm install --silent 2>/dev/null) || echo "  npm install skipped (Node.js not found)"
+else
+    echo "  [4/5] No frontend package.json found, skipping ..."
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Install pre-commit hooks
+# ---------------------------------------------------------------------------
+if command -v pre-commit &>/dev/null || (command -v uv &>/dev/null && uv run pre-commit --version &>/dev/null 2>&1); then
+    echo "  [5/5] Installing pre-commit hooks ..."
+    uv run pre-commit install 2>/dev/null || true
+else
+    echo "  [5/5] pre-commit not available, skipping hooks ..."
 fi
 
 echo ""
@@ -86,5 +117,4 @@ echo ""
 echo "Next steps:"
 echo "  1. cp .env.example .env        # add your secrets"
 echo "  2. uv run poe api              # start the backend"
-echo "  3. cd src/frontend && npm install && cd ../.."
-echo "  4. uv run poe frontend         # start the frontend"
+echo "  3. uv run poe frontend         # start the frontend"

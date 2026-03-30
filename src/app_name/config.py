@@ -47,6 +47,10 @@ class FrontendConfig(BaseModel):
 class LoggingConfig(BaseModel):
     level: str = "INFO"
     log_dir: str = "logs"
+    retention_days: int = 30
+    error_retention_days: int = 90
+    rotation: str = "00:00"
+    compression: str = "gz"
 
 
 # ---------------------------------------------------------------------------

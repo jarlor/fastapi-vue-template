@@ -95,7 +95,8 @@ uv run poe test       # pytest + coverage
 | 6 | [frontend-standards.md](docs/frontend-standards.md) | Vue3 组件/状态/API 规范 |
 | 7 | [security-standards.md](docs/security-standards.md) | 11 条安全规则 + pre-commit checklist |
 | 8 | [testing-guide.md](docs/testing-guide.md) | TDD 流程、pytest 模式 |
-| 9 | [database-patterns.md](docs/database-patterns.md) | 数据库集成指南 (MongoDB / PostgreSQL) |
+| 9 | [configuration-guide.md](docs/configuration-guide.md) | 配置体系 + 日志管理 (.env / yaml / 日志轮转) |
+| 10 | [database-patterns.md](docs/database-patterns.md) | 数据库集成指南 (MongoDB / PostgreSQL) |
 
 ## How to Add a New Feature (端到端流程)
 

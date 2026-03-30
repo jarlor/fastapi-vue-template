@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
 
     # 2. Configure logging
-    setup_logging(settings.logging.log_dir)
+    setup_logging(settings.logging)
     logger.info("Starting app_name v{}", __version__)
 
     # 3. Build the application registry (services, event bus, factories)

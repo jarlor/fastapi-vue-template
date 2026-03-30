@@ -16,4 +16,9 @@ frontend:
   dev_port: 8006
 
 logging:
+  level: "INFO"                # DEBUG / INFO / WARNING / ERROR
   log_dir: "logs"
+  retention_days: 30           # app.log retention
+  error_retention_days: 90     # error.log retention
+  rotation: "00:00"            # daily at midnight
+  compression: "gz"

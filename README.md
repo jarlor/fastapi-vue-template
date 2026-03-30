@@ -110,6 +110,7 @@ All tasks run via `uv run poe <task>`:
 | [security-standards.md](docs/security-standards.md) | 11 security rules + checklist |
 | [testing-guide.md](docs/testing-guide.md) | TDD flow, pytest patterns |
 | [walkthrough.md](docs/walkthrough.md) | End-to-end feature creation example |
+| [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging management |
 | [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
 
 ## Using as a GitHub Template

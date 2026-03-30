@@ -81,6 +81,24 @@ else
     echo "  [2/5] Source directory already renamed, skipping ..."
 fi
 
+# Restore reserved field names that should stay stable across generated projects.
+# These are semantic config keys, not package/module placeholders.
+if [[ -f "src/${PROJECT_NAME}/config.py" ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' -E "s/^([[:space:]]*)${PROJECT_NAME}: str = \"${PROJECT_NAME}\"$/\\1app_name: str = \"${PROJECT_NAME}\"/" "src/${PROJECT_NAME}/config.py"
+    else
+        sed -i -E "s/^([[:space:]]*)${PROJECT_NAME}: str = \"${PROJECT_NAME}\"$/\\1app_name: str = \"${PROJECT_NAME}\"/" "src/${PROJECT_NAME}/config.py"
+    fi
+fi
+
+if [[ -f "tests/conftest.py" ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' -E "s/^([[:space:]]*)${PROJECT_NAME}=\"${PROJECT_NAME}_test\"/\\1app_name=\"${PROJECT_NAME}_test\"/" "tests/conftest.py"
+    else
+        sed -i -E "s/^([[:space:]]*)${PROJECT_NAME}=\"${PROJECT_NAME}_test\"/\\1app_name=\"${PROJECT_NAME}_test\"/" "tests/conftest.py"
+    fi
+fi
+
 # ---------------------------------------------------------------------------
 # 3. Re-sync dependencies (package name changed in pyproject.toml)
 # ---------------------------------------------------------------------------

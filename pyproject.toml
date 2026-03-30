@@ -52,7 +52,7 @@ api = "python -m app_name.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
 lint = "ruff check src/app_name"
 fmt = "ruff format src/app_name"
-test = "pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
+test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
 
 # ---------------------------------------------------------------------------
 # Ruff

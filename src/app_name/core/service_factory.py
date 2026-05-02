@@ -30,9 +30,9 @@ def build_registry(*, settings: Settings) -> AppRegistry:
     # Example:
     #   from functools import partial
     #   from app_name.contexts.chat.application.services.chat_service import ChatService
-    #   from app_name.contexts.chat.infrastructure.gateways.openai_gateway import OpenAIChatGateway
+    #   from app_name.contexts.chat.infrastructure.gateways.provider_chat_gateway import ProviderChatGateway
     #
-    #   chat_model_factory = partial(OpenAIChatGateway, settings=settings)
+    #   chat_model_factory = partial(ProviderChatGateway, settings=settings)
     #   chat_service_factory = lambda: ChatService(model=chat_model_factory())
 
     # --- Register domain event handlers ---

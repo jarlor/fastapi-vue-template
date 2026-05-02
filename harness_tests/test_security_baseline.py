@@ -51,7 +51,7 @@ class TestSecurityBaseline:
         write_file(
             tmp_path,
             ".env.example",
-            "OPENAI_API_KEY=sk-...\nSECRET_KEY=<generated-32+-char-key>\n",
+            "SERVICE_API_KEY=replace-with-provider-key\nSECRET_KEY=<generated-32+-char-key>\n",
         )
 
         assert messages_for(tmp_path) == []
@@ -78,7 +78,7 @@ class TestSecurityBaseline:
 
     def test_blocks_known_live_token_patterns(self, tmp_path: Path) -> None:
         token = joined("sk-proj-", "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789")
-        write_file(tmp_path, "config.txt", f"OPENAI_API_KEY={token}\n")
+        write_file(tmp_path, "config.txt", f"SERVICE_API_KEY={token}\n")
 
         messages = messages_for(tmp_path)
 

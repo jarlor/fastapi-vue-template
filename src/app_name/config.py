@@ -19,14 +19,6 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 # ---------------------------------------------------------------------------
 
 
-class OpenAIConfig(BaseModel):
-    """Optional -- only needed when the project uses LLM features."""
-
-    api_key: str = ""
-    model: str = "gpt-4o-mini"
-    temperature: float = 0.0
-
-
 class CORSConfig(BaseModel):
     allow_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:8006"],
@@ -127,7 +119,6 @@ class Settings(BaseSettings):
     app_name: str = "app_name"
     debug: bool = False
 
-    openai: OpenAIConfig = OpenAIConfig()
     cors: CORSConfig = CORSConfig()
     server: ServerConfig = ServerConfig()
     frontend: FrontendConfig = FrontendConfig()

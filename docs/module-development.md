@@ -84,7 +84,7 @@ For external I/O such as HTTP clients, LLM SDKs, payment providers, email servic
 - Put the concrete SDK/client code under `infrastructure/gateways/` or `infrastructure/adapters/`.
 - Wire the concrete implementation from dependency providers or registry setup.
 
-Application services must not import provider SDKs such as `openai`, `anthropic`, `httpx`, or `requests` directly. The architecture harness enforces this boundary.
+Application services must not import concrete provider SDKs or network clients directly. The architecture harness enforces this boundary for known external I/O libraries.
 
 ## Event Pattern
 

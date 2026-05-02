@@ -57,4 +57,4 @@ class ChatService:
         self._model = model
 ```
 
-Put provider SDK code in `infrastructure/gateways/` or `infrastructure/adapters/`, then inject it through a dependency provider or registry wiring. Do not import SDKs such as `openai`, `anthropic`, `httpx`, or `requests` from application services.
+Put provider SDK code in `infrastructure/gateways/` or `infrastructure/adapters/`, then inject it through a dependency provider or registry wiring. Do not import HTTP clients, LLM SDKs, payment SDKs, email SDKs, or search SDKs from application services.

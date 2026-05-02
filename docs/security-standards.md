@@ -2,6 +2,30 @@
 
 Baseline security requirements for all code in this project.
 
+## Enforced Baseline
+
+Run the repository-owned security gate before opening or updating a PR:
+
+```bash
+uv run poe security
+```
+
+The aggregate harness also runs this command:
+
+```bash
+uv run poe harness
+```
+
+The current deterministic baseline blocks:
+
+- committed `.env` files except `.env.example`
+- private key material
+- high-confidence live tokens and secret assignments
+- `verify=False`
+- bare `except:`
+- `except Exception: pass`
+- `hashlib.md5(...)`
+
 ## Security Rules
 
 ### 1. SSL Verification Required
@@ -67,7 +91,7 @@ Any endpoint that requires authentication must use `Authorization: Bearer <token
 
 ### 9. No Hardcoded Credentials
 
-No API keys, passwords, tokens, or connection strings in source code. Use environment variables or a secrets manager. Run `grep -r` checks for common patterns (`password=`, `secret=`, `token=`, `api_key=`) before committing.
+No API keys, passwords, tokens, or connection strings in source code. Use environment variables or a secrets manager. The security harness intentionally blocks only high-confidence secret material so documentation placeholders and examples can remain useful.
 
 ### 10. Safe Error Messages
 
@@ -92,6 +116,7 @@ Before every commit, verify:
 - [ ] No hardcoded secrets (API keys, passwords, tokens)
 - [ ] No `verify=False` in HTTP clients
 - [ ] No bare `except:` or `except Exception: pass`
+- [ ] `uv run poe security` passes
 - [ ] No module-level side effects (Settings(), DB connections, file I/O)
 - [ ] All user input validated via Pydantic or Path/Query
 - [ ] All regex built from user input uses `re.escape()`

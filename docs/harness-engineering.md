@@ -37,17 +37,18 @@ The first version intentionally uses stable existing checks:
 
 - backend lint
 - architecture boundary checks
+- security baseline checks
 - backend tests
 - frontend build
 - frontend tests
 
 ## Roadmap
 
-1. Security harness: scan for committed secrets and dangerous code patterns.
-2. API contract harness: export OpenAPI and generate frontend types.
-3. Frontend harness: add lint rules and smoke tests for main user paths.
-4. Runtime harness: add readiness, liveness, metrics, tracing, and structured logs.
-5. Template engine: keep Copier generation and generated-project smoke tests as repository-owned guarantees.
+1. API contract harness: export OpenAPI and generate frontend types.
+2. Frontend harness: add lint rules and smoke tests for main user paths.
+3. Runtime harness: add readiness, liveness, metrics, tracing, and structured logs.
+4. Template engine: keep Copier generation and generated-project smoke tests as repository-owned guarantees.
+5. Security harness: expand the baseline only when new rules are deterministic enough to avoid noisy false positives.
 
 New checks should start narrow or report-only when false positives are likely. Promote them to required CI checks after they are stable.
 

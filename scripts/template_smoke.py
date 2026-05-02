@@ -124,6 +124,8 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / "README.md", f"src/{SMOKE_PACKAGE_NAME}")
     assert_contains(generated / "README.md", f"├── {SMOKE_PACKAGE_NAME}/")
     assert_contains(generated / "AGENTS.md", f"src/{SMOKE_PACKAGE_NAME}")
+    assert_contains(generated / "AGENTS.md", "git init")
+    assert_contains(generated / "AGENTS.md", "Run `git init` only when `.git/` does not exist yet.")
     assert_not_contains(generated / "AGENTS.md", "src/app_name")
     assert_contains(generated / "config.yaml", f"port: {SMOKE_BACKEND_PORT}")
     assert_contains(generated / "config.yaml", f"http://localhost:{SMOKE_FRONTEND_PORT}")

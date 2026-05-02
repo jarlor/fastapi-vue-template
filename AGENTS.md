@@ -20,11 +20,14 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 After this repository is generated from the template, initialize the working tree before feature work:
 
 ```bash
+git init
 uv sync
 npm --prefix src/frontend ci
 uv run pre-commit install
 uv run poe harness
 ```
+
+Run `git init` only when `.git/` does not exist yet. Then create or follow the project's integration branch before starting feature work.
 
 Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
 

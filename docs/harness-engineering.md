@@ -1,6 +1,6 @@
 # Harness Engineering
 
-This template is being shaped for Vibe Coding: humans describe intent, AI agents implement large parts of the change, and the repository harness decides whether the result is acceptable.
+This template is being shaped for Vibe Coding: humans describe intent, AI agents implement large parts of the change, and the repository harness provides strong constraints around whether the resulting repository change is acceptable.
 
 ## Policy
 
@@ -8,8 +8,9 @@ Repository-tracked files are the authority:
 
 - `AGENTS.md` defines shared agent behavior.
 - `.agents/skills/` contains reusable, repository-owned agent workflows.
+- Docs provide soft constraints: intent, rationale, conventions, examples, and review expectations.
 - Required workflow belongs in repository-owned instructions, not tool-specific adapter files.
-- `poe` tasks, scripts, pre-commit, and CI enforce rules.
+- `poe` tasks, scripts, pre-commit, and CI provide hard constraints that enforce repository quality gates.
 - Pull requests record evidence that the harness passed.
 
 Do not rely on one AI product's private hooks or rules for required behavior. Product-specific integrations may improve local ergonomics, but do not commit adapter files unless they add repository-owned value that cannot live in `AGENTS.md`, skills, scripts, or docs.
@@ -40,14 +41,17 @@ The first version intentionally uses stable existing checks:
 - security baseline checks
 - API contract drift checks
 - frontend source boundary checks
+- runtime app factory, lifespan, and health baseline checks
 - backend tests
 - frontend build
 - frontend tests
 
+Poe task names are the stable local and CI entrypoints. Scripts under `scripts/harness/` implement those gates and are not a separate public script API. Use `tests/` for application behavior and utility coverage; use harness tasks for repository workflow, architectural boundaries, generated-template guarantees, and other constraints that AI coding agents must not bypass.
+
 ## Roadmap
 
 1. Frontend harness: add smoke tests for main user paths and promote more rules only when false positives are low.
-2. Runtime harness: add readiness, liveness, metrics, tracing, and structured logs.
+2. Runtime harness: extend the current app factory, lifespan, and health baseline only when deployment conventions justify readiness, metrics, tracing, or structured logs.
 3. Template engine: keep Copier generation and generated-project smoke tests as repository-owned guarantees.
 4. Security harness: expand the baseline only when new rules are deterministic enough to avoid noisy false positives.
 5. API contract harness: expand from type generation to generated clients only if the frontend needs it.

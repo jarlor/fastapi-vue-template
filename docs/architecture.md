@@ -79,6 +79,6 @@ Pydantic Settings reads both and validates them into typed models. Secrets alway
 | Prefix      | Purpose                              |
 |-------------|--------------------------------------|
 | `/api/v1/`  | Versioned application API            |
-| `/health`   | Root liveness probe                  |
+| `/health`   | Root health envelope                 |
 
 The template keeps a single `/api/v1` surface. If a project later needs public/internal separation, add it deliberately in that project instead of carrying the complexity in the base template.

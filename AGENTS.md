@@ -4,7 +4,7 @@
 
 This is a production-oriented FastAPI + Vue template that is being evolved for Vibe Coding and Harness Engineering.
 
-The repository is the source of truth. Tool-specific files may adapt these instructions for one agent, but they must not define separate project rules.
+The repository is the source of truth. Keep required workflow in repository-owned instructions, skills, scripts, and CI. Do not add tool-specific adapter files unless they enforce or document a repository-owned harness capability that cannot live in those shared locations.
 
 ## Operating Model
 

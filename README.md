@@ -66,7 +66,7 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   ├── conftest.py
 │   ├── unit/
 │   └── integration/
-└── CLAUDE.md                # Claude Code instructions
+└── AGENTS.md                # Repository instructions for AI coding agents
 ```
 
 ## Bounded Contexts
@@ -156,7 +156,7 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 | [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
 | [harness-engineering.md](docs/harness-engineering.md) | Repository-owned agent workflow and quality gates |
 
-AI coding agents should start with [AGENTS.md](AGENTS.md). Tool-specific adapters, such as `CLAUDE.md`, point back to that canonical repository instruction file.
+AI coding agents should start with [AGENTS.md](AGENTS.md). Keep required agent workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 
 ## Using as a GitHub Template
 

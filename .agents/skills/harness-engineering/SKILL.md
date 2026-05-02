@@ -12,7 +12,7 @@ Use this skill for repository changes that affect how humans and AI agents make,
 1. Start from `AGENTS.md`.
 2. Inspect the relevant project docs and current CI/pre-commit tasks.
 3. Prefer repository-tracked, deterministic checks over tool-specific hooks.
-4. Keep tool-specific adapters thin. They should point back to repository-owned instructions.
+4. Do not add tool-specific adapters unless the repository cannot express that capability through shared instructions, skills, scripts, or CI.
 5. Add new checks to `uv run poe harness` before making them required in CI.
 6. For new rules, document the expected behavior and the command that verifies it.
 

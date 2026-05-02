@@ -118,6 +118,9 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / ".copier-answers.yml", f"frontend_port: {SMOKE_FRONTEND_PORT}")
     assert_contains(generated / ".copier-answers.yml", f"api_prefix: {SMOKE_API_PREFIX}")
 
+    assert_contains(generated / ".ignore", ".venv/")
+    assert_contains(generated / ".ignore", "node_modules/")
+    assert_contains(generated / ".ignore", ".git/")
     assert_contains(generated / "pyproject.toml", f'name = "{SMOKE_PROJECT_NAME}"')
     assert_contains(generated / "pyproject.toml", f"src/{SMOKE_PACKAGE_NAME}")
     assert_contains(generated / "README.md", f"# {SMOKE_PROJECT_NAME}")

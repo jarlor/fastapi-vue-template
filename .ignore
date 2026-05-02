@@ -1,0 +1,23 @@
+# Generated environments and dependency trees
+.venv/
+venv/
+env/
+node_modules/
+
+# Build outputs
+dist/
+build/
+htmlcov/
+
+# Tool caches and runtime output
+.pytest_cache/
+.ruff_cache/
+.coverage
+logs/
+*.log
+
+# VCS and local editor state
+.git/
+.idea/
+.vscode/
+.DS_Store

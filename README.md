@@ -155,6 +155,7 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 | [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
 | [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
 | [harness-engineering.md](docs/harness-engineering.md) | Repository-owned agent workflow and quality gates |
+| [template-engine.md](docs/template-engine.md) | Copier migration plan for safe project generation and updates |
 
 AI coding agents should start with [AGENTS.md](AGENTS.md). Keep required agent workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 

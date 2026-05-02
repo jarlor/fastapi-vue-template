@@ -8,7 +8,7 @@ from pathlib import Path
 from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[2]
-CHECKER_PATH = ROOT / "scripts" / "check_security_baseline.py"
+CHECKER_PATH = ROOT / "scripts" / "harness" / "check_security_baseline.py"
 
 
 def load_checker_module() -> ModuleType:

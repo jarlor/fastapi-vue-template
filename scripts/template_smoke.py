@@ -30,6 +30,9 @@ SENTINEL_ALLOWLIST = {
     "docs/template-engine.md",
     "scripts/template_smoke.py",
 }
+TEMPLATE_ONLY_FILES = {
+    "tests/unit/test_render_copier_backend.py",
+}
 
 
 def run(command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
@@ -64,6 +67,9 @@ def scan_for_sentinels(project_root: Path) -> list[str]:
 
         relative_path = str(path.relative_to(project_root))
         if relative_path in SENTINEL_ALLOWLIST:
+            continue
+        if relative_path in TEMPLATE_ONLY_FILES:
+            matches.append(relative_path)
             continue
 
         if any(sentinel in content for sentinel in SENTINELS):
@@ -103,6 +109,8 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / "config.yaml", f"port: {SMOKE_BACKEND_PORT}")
     assert_contains(generated / "config.yaml", f"http://localhost:{SMOKE_FRONTEND_PORT}")
     assert_contains(generated / "src" / "frontend" / "package.json", f'"name": "{SMOKE_FRONTEND_NAME}"')
+    assert_contains(generated / "contracts" / "openapi.json", f'"title": "{SMOKE_PROJECT_NAME}"')
+    assert_contains(generated / "contracts" / "openapi.json", f'"{SMOKE_API_PREFIX}/health"')
     assert_contains(
         generated / "src" / "frontend" / "vite.config.ts",
         f'APP_FRONTEND_PORT || "{SMOKE_FRONTEND_PORT}"',
@@ -112,6 +120,7 @@ def assert_generated_variables(generated: Path) -> None:
         f'APP_BACKEND_URL || "http://127.0.0.1:{SMOKE_BACKEND_PORT}"',
     )
     assert_contains(generated / "src" / "frontend" / "src" / "api" / "index.ts", f'baseURL: "{SMOKE_API_PREFIX}"')
+    assert_contains(generated / "src" / "frontend" / "src" / "api" / "generated" / "openapi.ts", SMOKE_API_PREFIX)
 
 
 def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
@@ -172,9 +181,10 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
             raise RuntimeError(msg)
 
         run(["uv", "run", "poe", "architecture"], cwd=generated, env=env)
+        run(["npm", "--prefix", "src/frontend", "ci", "--no-audit", "--no-fund"], cwd=generated, env=env)
+        run(["uv", "run", "poe", "api-contracts"], cwd=generated, env=env)
         run(["uv", "run", "poe", "test"], cwd=generated, env=env)
         if full:
-            run(["npm", "--prefix", "src/frontend", "ci", "--no-audit", "--no-fund"], cwd=generated, env=env)
             run(["npm", "--prefix", "src/frontend", "run", "build"], cwd=generated, env=env)
             run(["npm", "--prefix", "src/frontend", "run", "test"], cwd=generated, env=env)
 

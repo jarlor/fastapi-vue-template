@@ -1,5 +1,26 @@
 # API Conventions
 
+## Contract Harness
+
+The committed API contract artifacts are:
+
+- `contracts/openapi.json`
+- `src/frontend/src/api/generated/openapi.ts`
+
+Refresh them after changing routes, response models, request models, or API metadata:
+
+```bash
+uv run poe api-contracts-write
+```
+
+Check for drift before opening or updating a PR:
+
+```bash
+uv run poe api-contracts
+```
+
+`uv run poe harness` runs the same drift check. Do not edit generated contract artifacts by hand.
+
 ## URL Structure
 
 ```

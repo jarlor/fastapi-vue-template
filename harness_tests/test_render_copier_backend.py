@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "render_copier_backend",
     ROOT / "scripts" / "render_copier_backend.py",
@@ -57,7 +57,7 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
                 'name = "app_name"',
                 'packages = ["src/app_name"]',
                 'api = "python -m app_name.run_api"',
-                'lint = "ruff check src/app_name scripts tests"',
+                'lint = "ruff check src/app_name scripts tests harness_tests"',
                 'test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"',
             ]
         ),

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 CHECKER_PATH = ROOT / "scripts" / "harness" / "check_context_boundaries.py"
 TEST_PACKAGE = "app_name"
 

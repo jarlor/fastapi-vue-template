@@ -78,7 +78,7 @@ _exclude:
   - .ruff_cache
   - .coverage
   - .DS_Store
-  - tests/unit/test_render_copier_backend.py
+  - harness_tests/test_render_copier_backend.py
   - src/frontend/node_modules
   - src/frontend/dist
   - "**/__pycache__"

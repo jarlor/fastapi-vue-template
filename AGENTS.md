@@ -36,6 +36,7 @@ Run these commands from the repository root:
 
 ```bash
 uv run poe lint
+uv run poe harness-test
 uv run poe architecture
 uv run poe security
 uv run poe api-contracts

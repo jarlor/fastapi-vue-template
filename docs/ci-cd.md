@@ -25,7 +25,7 @@ The template ships with full-stack GitHub Actions. CI and governance are always 
 - Repository harness: `uv run poe harness`
 - Shell syntax checks for `scripts/cicd/*.sh` and `scripts/deploy/*.sh`
 
-`uv run poe harness` is the aggregate policy gate for repository constraints. It includes deterministic harness checks such as architecture boundaries, security baseline, API contract drift, frontend source boundaries, and runtime app-factory/lifespan baseline.
+`uv run poe harness` is the aggregate policy gate for repository constraints. It includes harness implementation tests, deterministic harness checks such as architecture boundaries, security baseline, API contract drift, frontend source boundaries, and runtime app-factory/lifespan baseline.
 
 ## Profiles
 

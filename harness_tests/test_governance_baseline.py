@@ -41,6 +41,7 @@ def seed_repo(root: Path) -> None:
     required_tasks = (
         "lint",
         "harness-test",
+        "branch-harness",
         "governance-harness",
         "supply-chain",
         "architecture",

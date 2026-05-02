@@ -16,6 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_HARNESS_TASKS = (
     "lint",
     "harness-test",
+    "branch-harness",
     "governance-harness",
     "supply-chain",
     "architecture",

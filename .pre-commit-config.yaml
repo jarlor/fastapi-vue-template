@@ -13,3 +13,9 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+      - id: branch-harness
+        name: poe branch-harness
+        entry: uv run poe branch-harness
+        language: system
+        pass_filenames: false
+        always_run: true

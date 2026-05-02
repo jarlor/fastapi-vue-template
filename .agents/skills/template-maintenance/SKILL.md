@@ -13,7 +13,6 @@ This repository pairs soft and hard constraints:
 
 - `AGENTS.md` routes agents to the right workflow and states shared rules.
 - Skills provide task-specific procedures.
-- Focused docs explain generated-project behavior when humans need stable reference material.
 - `uv run poe ...` tasks, scripts, pre-commit, CI, and PR evidence enforce what must not drift.
 - `scripts/harness/` contains implementation details; Poe task names are the public interface.
 
@@ -21,7 +20,7 @@ This repository pairs soft and hard constraints:
 
 1. Start from `AGENTS.md` and run `uv run poe agent-start` before the first edit.
 2. Decide whether the change affects generated projects, template mechanics, harness gates, or agent instructions.
-3. Read only the relevant docs, skills, scripts, CI files, and tests.
+3. Read only the relevant skills, scripts, CI files, generated-project files, and tests.
 4. Prefer repository-tracked deterministic checks over tool-specific hooks.
 5. Keep required behavior in shared instructions, skills, scripts, Poe tasks, CI, or PR evidence.
 6. Do not add product-specific agent adapters unless shared repository mechanisms cannot express the capability.
@@ -33,13 +32,12 @@ This repository pairs soft and hard constraints:
 
 - Use `AGENTS.md` for shared agent behavior and routing.
 - Use skills for reusable agent workflows.
-- Use docs only for generated-project reference material or template-maintainer history that should not be in a workflow.
 - Use Poe tasks, harness scripts, pre-commit, and CI for enforceable rules.
 - Do not turn every convention into a hard gate. Promote only rules that are broadly useful, deterministic, and owned by the template.
 - Keep downstream product, database, deployment, UI style, and infrastructure choices out of default gates unless the template owns that behavior.
 - Use `tests/` for application behavior.
 - Use `harness_tests/` for harness checker and template-tool self-tests.
-- Delete or shorten docs that are not tied to current template behavior, a route in `AGENTS.md`, a skill workflow, or a hard harness gate.
+- Keep generated-project documentation out of `docs/` by default. Prefer `README.md`, `AGENTS.md`, skills, tests, and harness output.
 
 ## Template Engine
 

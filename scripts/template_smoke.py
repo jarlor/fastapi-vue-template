@@ -33,7 +33,6 @@ SENTINELS = (
     "{{ frontend_name }}",
 )
 SENTINEL_ALLOWLIST = {
-    "docs/template-engine.md",
     "scripts/template_smoke.py",
 }
 TEMPLATE_ONLY_FILES = {
@@ -117,6 +116,12 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / ".copier-answers.yml", f"backend_port: {SMOKE_BACKEND_PORT}")
     assert_contains(generated / ".copier-answers.yml", f"frontend_port: {SMOKE_FRONTEND_PORT}")
     assert_contains(generated / ".copier-answers.yml", f"api_prefix: {SMOKE_API_PREFIX}")
+    if (generated / "docs").exists():
+        msg = (
+            "Generated projects should not include default docs/; "
+            "use README, AGENTS.md, skills, tests, and harness output"
+        )
+        raise RuntimeError(msg)
 
     assert_contains(generated / ".ignore", ".venv/")
     assert_contains(generated / ".ignore", "node_modules/")

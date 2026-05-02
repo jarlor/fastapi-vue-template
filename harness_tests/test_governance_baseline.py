@@ -68,7 +68,6 @@ def seed_repo(root: Path) -> None:
             "uv run poe agent-handoff",
             "git status --short --branch",
             "create a focused feature branch before changing product code",
-            "Do not hand work to an agent on the baseline branch.",
             "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, "
             "and generated coverage files",
         ]
@@ -145,6 +144,11 @@ jobs:
         ".agents/skills/template-maintenance/SKILL.md",
         "Skills provide reusable workflow. Poe tasks provide hard constraints.",
     )
+    write_file(
+        root,
+        ".agents/skills/project-development/SKILL.md",
+        "Skills provide reusable workflow. Poe tasks provide hard constraints.",
+    )
 
 
 def messages_for(root: Path) -> list[str]:
@@ -209,12 +213,25 @@ jobs:
     def test_requires_agent_branch_guidance(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
         agents = tmp_path / "AGENTS.md"
-        agents.write_text(agents.read_text().replace("Do not hand work to an agent on the baseline branch.\n", ""))
+        agents.write_text(
+            agents.read_text().replace("create a focused feature branch before changing product code\n", "")
+        )
 
         messages = messages_for(tmp_path)
 
         assert any(
-            "missing agent workflow guidance: Do not hand work to an agent on the baseline branch." in message
+            "missing agent workflow guidance: create a focused feature branch before changing product code" in message
+            for message in messages
+        )
+
+    def test_requires_project_development_skill(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / ".agents/skills/project-development/SKILL.md").unlink()
+
+        messages = messages_for(tmp_path)
+
+        assert any(
+            ".agents/skills/project-development/SKILL.md: missing agent workflow skill" in message
             for message in messages
         )
 

@@ -6,7 +6,7 @@ This is the short source map for agents and humans who need repository context w
 
 1. Run `uv run poe agent-start`.
 2. Read `AGENTS.md` for the workflow contract.
-3. Read only the task-relevant skill or doc routed from `AGENTS.md`.
+3. Read only the task-relevant skill routed from `AGENTS.md`.
 
 ## Source Roots
 
@@ -18,7 +18,6 @@ This is the short source map for agents and humans who need repository context w
 | `harness_tests/` | Tests for harness checkers and template tools |
 | `scripts/harness/` | Poe task implementations; not public entrypoints |
 | `.agents/skills/` | Reusable agent workflows |
-| `docs/` | Focused reference docs routed by `AGENTS.md` |
 
 ## Ignore During Context Scans
 

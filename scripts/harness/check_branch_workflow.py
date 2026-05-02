@@ -18,7 +18,6 @@ PRODUCT_PATH_PREFIXES = (
     "README.md",
     "config.yaml",
     "contracts/",
-    "docs/",
     "harness_tests/",
     "pyproject.toml",
     "scripts/",

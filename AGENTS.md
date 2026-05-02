@@ -25,9 +25,11 @@ uv sync
 npm --prefix src/frontend ci
 uv run pre-commit install
 uv run poe harness
+git add .
+git commit -m "chore: initialize from template"
 ```
 
-Run `git init` only when `.git/` does not exist yet. Then create or follow the project's integration branch before starting feature work.
+Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. Then create or follow the project's integration branch.
 
 Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
 

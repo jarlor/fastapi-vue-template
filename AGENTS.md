@@ -15,6 +15,28 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 5. Run `uv run poe harness` before opening or updating a PR.
 6. Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
 
+## Init Workflow
+
+After this repository is generated from the template, initialize the working tree before feature work:
+
+```bash
+uv sync
+npm --prefix src/frontend ci
+uv run pre-commit install
+uv run poe harness
+```
+
+If the project was just generated or template behavior changed, also run:
+
+```bash
+uv run poe template-smoke
+```
+
+Then choose the task workflow:
+
+- Use `.agents/skills/template-maintenance/SKILL.md` for template mechanics, Copier, generated-project files, harness gates, CI, PR workflow, and agent instruction changes.
+- Use `.agents/skills/project-development/SKILL.md` for normal generated-project feature work.
+
 ## Core Rules
 
 - Backend code lives under `src/app_name`.
@@ -58,8 +80,8 @@ Use docs as task references, not as a mandatory reading set.
 
 | Task | Read |
 |---|---|
-| Template generation, Copier, generated project smoke | `docs/template-engine.md` |
-| Harness policy, checks, PR evidence | `.agents/skills/harness-engineering/SKILL.md` |
+| Template generation, Copier, generated project smoke | `.agents/skills/template-maintenance/SKILL.md` and `docs/template-engine.md` |
+| Harness policy, checks, PR evidence | `.agents/skills/template-maintenance/SKILL.md` |
 | Backend structure or new bounded context | `docs/module-development.md` |
 | API routes, response envelope, OpenAPI contract | `docs/api-conventions.md` |
 | Frontend API boundary or generated API types | `docs/frontend-standards.md` |

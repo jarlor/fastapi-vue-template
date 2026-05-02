@@ -25,6 +25,8 @@ cd my-project
 
 Copier records your answers in `.copier-answers.yml` so future template updates can be applied deliberately with `copier update`.
 
+If you delegate implementation to an AI coding agent, tell it to start from [AGENTS.md](AGENTS.md). That file contains the agent initialization workflow, skill routing, and required harness commands.
+
 ### 2. Start developing
 
 ```bash
@@ -160,7 +162,7 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 | [ci-cd.md](docs/ci-cd.md) | GitHub Actions and deployment profiles |
 | [template-engine.md](docs/template-engine.md) | Copier generation and updates |
 
-AI coding agents should start with [AGENTS.md](AGENTS.md), then read only task-relevant docs or skills. Harness workflow lives in [.agents/skills/harness-engineering/SKILL.md](.agents/skills/harness-engineering/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
+AI coding agents should start with [AGENTS.md](AGENTS.md), then read only task-relevant docs or skills. Normal feature work uses [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md); template and harness work uses [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 
 ## Using as a GitHub Template
 

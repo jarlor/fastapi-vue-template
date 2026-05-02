@@ -8,7 +8,6 @@ import stat
 import subprocess
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PLACEHOLDER_NAME = "app" "_name"
 SOURCE_PACKAGE_DIR = next(

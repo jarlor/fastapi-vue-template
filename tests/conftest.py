@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 from httpx import ASGITransport, AsyncClient
-from unittest.mock import MagicMock
 
 from app_name.config import Settings
 from app_name.main import create_app

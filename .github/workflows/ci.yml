@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: uv run poe lint
 
+      - name: Architecture
+        run: uv run poe architecture
+
       - name: Test
         run: uv run poe test
 

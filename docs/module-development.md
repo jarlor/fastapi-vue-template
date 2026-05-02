@@ -43,7 +43,7 @@ Create the following structure under `src/app_name/contexts/<context_name>/`:
 |--------------------|-------------------------------------------|
 | interface/         | application/, domain/                     |
 | application/       | domain/                                   |
-| infrastructure/    | domain/ (to implement ports)              |
+| infrastructure/    | domain/, application/ports/               |
 | any layer          | `shared/` (cross-cutting utilities)       |
 
 ### Forbidden
@@ -51,6 +51,14 @@ Create the following structure under `src/app_name/contexts/<context_name>/`:
 - Context A **never** imports from Context B.
 - `domain/` never imports from `application/`, `infrastructure/`, or `interface/`.
 - `application/` never imports from `infrastructure/` or `interface/`.
+
+These rules are enforced by the repository architecture harness:
+
+```bash
+uv run poe architecture
+```
+
+The aggregate gate `uv run poe harness` also runs this check.
 
 ## Port / Adapter Pattern
 
@@ -125,4 +133,4 @@ If a file exceeds these limits, extract a new module.
 - [ ] Register router in `src/app_name/api/`
 - [ ] Write unit tests for the application service
 - [ ] Write integration tests for the router
-- [ ] Verify no cross-context imports exist
+- [ ] Run `uv run poe architecture`

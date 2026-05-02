@@ -96,6 +96,7 @@ All tasks run via `uv run poe <task>`:
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
 | `poe test`        | Run pytest with coverage                 |
+| `poe harness`     | Run the repository quality gate          |
 
 ## Git and CI/CD
 
@@ -153,6 +154,9 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 | [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
 | [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
 | [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
+| [harness-engineering.md](docs/harness-engineering.md) | Repository-owned agent workflow and quality gates |
+
+AI coding agents should start with [AGENTS.md](AGENTS.md). Tool-specific adapters, such as `CLAUDE.md`, point back to that canonical repository instruction file.
 
 ## Using as a GitHub Template
 

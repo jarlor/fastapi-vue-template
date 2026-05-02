@@ -64,6 +64,37 @@ jobs:
       - name: Test
         run: npm run test
 
+  template-harness:
+    name: Template harness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Python dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix src/frontend --no-audit --no-fund
+
+      - name: Run repository harness
+        run: uv run poe harness
+
   deploy-scripts:
     name: Deploy script syntax
     runs-on: ubuntu-latest

@@ -77,6 +77,15 @@ The aggregate gate `uv run poe harness` also runs this check.
 
 Use `Protocol` classes under `application/ports/` for dependencies that need adapters. Put concrete implementations under `infrastructure/`.
 
+For external I/O such as HTTP clients, LLM SDKs, payment providers, email services, or search providers:
+
+- Define the capability the application needs as a `Protocol` in `application/ports/`.
+- Inject that port into the application service.
+- Put the concrete SDK/client code under `infrastructure/gateways/` or `infrastructure/adapters/`.
+- Wire the concrete implementation from dependency providers or registry setup.
+
+Application services must not import provider SDKs such as `openai`, `anthropic`, `httpx`, or `requests` directly. The architecture harness enforces this boundary.
+
 ## Event Pattern
 
 Contexts communicate through domain events, not direct imports.
@@ -91,16 +100,28 @@ event_bus.subscribe(OrderPlaced, handle_order_placed)
 
 ## Dependency Injection Pattern
 
-Wire the context in a `depends.py` or directly in the router:
+Wire the context from dependency providers or registry setup. Routers should depend on provider functions; they should not construct concrete infrastructure clients inline.
 
 ```python
+from typing import Protocol
+
+
+class ItemRepositoryPort(Protocol):
+    async def list_items(self) -> list[Item]: ...
+
+
+class ItemService:
+    def __init__(self, repo: ItemRepositoryPort) -> None:
+        self._repo = repo
+
+
 def get_item_service(request: Request) -> ItemService:
     registry = request.app.state.registry
-    repo = MongoItemRepository(registry.db.get_collection("items"))
+    repo = MongoItemRepository(registry.db.get_collection("items"))  # infrastructure adapter
     return ItemService(repo)
 ```
 
-Use `Depends(get_item_service)` in route handlers. If your project has not integrated a database yet, keep the same dependency shape but substitute an in-memory or mocked adapter.
+Use `Depends(get_item_service)` in route handlers. If your project has not integrated a database or provider yet, keep the same dependency shape but substitute an in-memory or mocked adapter. Do not bypass the port just because the first version is small.
 
 ## New Context Checklist
 

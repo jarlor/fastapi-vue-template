@@ -38,3 +38,23 @@ my_context/
 3. **Infrastructure** implements the ports defined in Application.
 4. **Interface** wires everything together and exposes HTTP endpoints.
 5. Contexts NEVER import from each other directly. Use the event bus for cross-context communication.
+
+External I/O belongs behind a port:
+
+```python
+# application/ports/chat_model.py
+from collections.abc import AsyncIterator
+from typing import Protocol
+
+
+class ChatModelPort(Protocol):
+    async def stream_reply(self, messages: list[dict[str, str]]) -> AsyncIterator[str]: ...
+
+
+# application/services/chat_service.py
+class ChatService:
+    def __init__(self, model: ChatModelPort) -> None:
+        self._model = model
+```
+
+Put provider SDK code in `infrastructure/gateways/` or `infrastructure/adapters/`, then inject it through a dependency provider or registry wiring. Do not import SDKs such as `openai`, `anthropic`, `httpx`, or `requests` from application services.

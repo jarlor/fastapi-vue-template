@@ -22,6 +22,9 @@ Use this skill for feature, fix, refactor, and test work in a project generated 
 - Backend features live under the generated backend package's `contexts/<context_name>/` directory.
 - Contexts do not import each other directly. Use events or ports.
 - Route handlers stay thin; application services own behavior.
+- Application services depend on ports, not concrete infrastructure clients.
+- Provider SDKs and external I/O clients such as `openai`, `anthropic`, `httpx`, and `requests` belong under `infrastructure/adapters` or `infrastructure/gateways`.
+- Wire concrete adapters through dependency providers or the registry; do not instantiate SDK clients in route handlers or application services.
 - Keep `create_app()` as the app factory and avoid module-level side effects.
 - Frontend code calls HTTP only through `src/frontend/src/api`.
 - Generated API artifacts are refreshed through `uv run poe api-contracts-write`, not edited by hand.

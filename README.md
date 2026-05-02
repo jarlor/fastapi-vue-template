@@ -45,6 +45,7 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   ├── render_copier_backend.py
 │   └── template_smoke.py
 ├── docs/                    # architecture & development guides
+├── harness_tests/           # tests for harness scripts and template tools
 ├── src/
 │   ├── app_name/            # Python backend (FastAPI)
 │   │   ├── main.py          # FastAPI app + lifespan
@@ -94,6 +95,7 @@ All tasks run via `uv run poe <task>`:
 | `poe frontend`    | Start Vite dev server (port 8006)        |
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
+| `poe harness-test` | Test harness scripts and template tools |
 | `poe architecture` | Check bounded-context boundaries        |
 | `poe security`    | Run deterministic security baseline      |
 | `poe api-contracts` | Check OpenAPI and frontend type drift   |

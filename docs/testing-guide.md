@@ -27,7 +27,7 @@ uv run poe test
 
 > **Note**: All `poe` task commands should be prefixed with `uv run` (e.g. `uv run poe lint`, `uv run poe fmt`).
 
-Tests validate behavior and utility code. Repository policy constraints for agent-driven changes are enforced through Poe harness gates such as `uv run poe runtime-harness` and the aggregate `uv run poe harness`.
+Tests validate application behavior and utility code. Repository policy constraints for agent-driven changes are enforced through Poe harness gates such as `uv run poe runtime-harness` and the aggregate `uv run poe harness`. Checker and template-tool self-tests live in `harness_tests/` and run through `uv run poe harness-test`.
 
 ## Test Organisation
 
@@ -44,6 +44,7 @@ tests/
 
 - **Unit tests** cover application services and domain logic. They mock infrastructure (repositories, external clients).
 - **Integration tests** cover FastAPI routers via `httpx.AsyncClient`. They use a real (or in-memory) database fixture.
+- **Harness tests** live outside `tests/` under `harness_tests/`. They cover repository checkers, template rendering tools, and other harness implementation details.
 
 ## Mock Patterns for Motor
 

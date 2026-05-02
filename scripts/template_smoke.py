@@ -31,7 +31,7 @@ SENTINEL_ALLOWLIST = {
     "scripts/template_smoke.py",
 }
 TEMPLATE_ONLY_FILES = {
-    "tests/unit/test_render_copier_backend.py",
+    "harness_tests/test_render_copier_backend.py",
 }
 
 
@@ -182,6 +182,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
 
         run(["uv", "run", "poe", "architecture"], cwd=generated, env=env)
         run(["npm", "--prefix", "src/frontend", "ci", "--no-audit", "--no-fund"], cwd=generated, env=env)
+        run(["uv", "run", "poe", "harness-test"], cwd=generated, env=env)
         run(["uv", "run", "poe", "api-contracts"], cwd=generated, env=env)
         run(["uv", "run", "poe", "frontend-harness"], cwd=generated, env=env)
         run(["uv", "run", "poe", "runtime-harness"], cwd=generated, env=env)

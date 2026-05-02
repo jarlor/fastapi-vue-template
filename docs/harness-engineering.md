@@ -37,6 +37,7 @@ uv run poe harness
 The first version intentionally uses stable existing checks:
 
 - backend lint
+- harness script and template-tool tests
 - architecture boundary checks
 - security baseline checks
 - API contract drift checks
@@ -46,7 +47,7 @@ The first version intentionally uses stable existing checks:
 - frontend build
 - frontend tests
 
-Poe task names are the stable local and CI entrypoints. Scripts under `scripts/harness/` implement those gates and are not a separate public script API. Use `tests/` for application behavior and utility coverage; use harness tasks for repository workflow, architectural boundaries, generated-template guarantees, and other constraints that AI coding agents must not bypass.
+Poe task names are the stable local and CI entrypoints. Scripts under `scripts/harness/` implement those gates and are not a separate public script API. Use `tests/` for application behavior and utility coverage; use `harness_tests/` for checker and template-tool self-tests; use harness tasks for repository workflow, architectural boundaries, generated-template guarantees, and other constraints that AI coding agents must not bypass.
 
 ## Roadmap
 

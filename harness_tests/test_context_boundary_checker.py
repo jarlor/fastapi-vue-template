@@ -85,6 +85,33 @@ class TestContextBoundaryChecker:
 
         assert violations == []
 
+    def test_blocks_external_io_client_in_application_service(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        write_context_file(contexts_root, "chat/application/services/chat_service.py", "import httpx\n")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert len(violations) == 1
+        assert violations[0].line == 1
+        assert "external I/O dependency 'httpx' must live under infrastructure/adapters" in violations[0].message
+
+    def test_allows_external_io_client_in_infrastructure_gateway(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        write_context_file(contexts_root, "chat/infrastructure/gateways/openai_gateway.py", "import httpx\n")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert violations == []
+
+    def test_blocks_external_provider_sdk_in_interface_layer(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        write_context_file(contexts_root, "chat/interface/api/router.py", "from anthropic import AsyncAnthropic\n")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert len(violations) == 1
+        assert "external I/O dependency 'anthropic'" in violations[0].message
+
     def test_allows_same_context_allowed_imports(self, tmp_path: Path) -> None:
         contexts_root = tmp_path / "contexts"
         write_context_file(

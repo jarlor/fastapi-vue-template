@@ -23,6 +23,16 @@ LAYER_IMPORT_RULES = {
     "infrastructure": {"domain", "infrastructure"},
     "interface": {"domain", "application", "interface"},
 }
+EXTERNAL_IO_MODULES = {
+    "anthropic",
+    "httpx",
+    "openai",
+    "requests",
+}
+EXTERNAL_IO_ALLOWED_LAYER_PREFIXES = (
+    "infrastructure.adapters",
+    "infrastructure.gateways",
+)
 
 
 @dataclass(frozen=True)
@@ -175,6 +185,16 @@ def check_file(context_file: ContextFile) -> list[Violation]:
 
     for import_ref in imported_modules(context_file.path):
         module = resolve_relative_import(context_file, import_ref)
+        if imports_external_io(module) and not context_file_allows_external_io(context_file):
+            add_violation(
+                import_ref.line,
+                (
+                    f"external I/O dependency '{module.split('.', maxsplit=1)[0]}' must live under "
+                    "infrastructure/adapters or infrastructure/gateways"
+                ),
+            )
+            continue
+
         imported = imported_context(context_file.package_name, module)
         if imported is None:
             continue
@@ -206,6 +226,22 @@ def check_file(context_file: ContextFile) -> list[Violation]:
         )
 
     return violations
+
+
+def imports_external_io(module: str) -> bool:
+    """Return whether an import references a known external I/O client."""
+    head = module.split(".", maxsplit=1)[0]
+    return head in EXTERNAL_IO_MODULES
+
+
+def context_file_allows_external_io(context_file: ContextFile) -> bool:
+    """Return whether a context file is in an external I/O implementation layer."""
+    if context_file.layer != "infrastructure":
+        return False
+
+    relative = context_file.path.relative_to(context_file.contexts_root / context_file.context)
+    layer_path = ".".join(relative.parts[:-1])
+    return any(layer_path.startswith(prefix) for prefix in EXTERNAL_IO_ALLOWED_LAYER_PREFIXES)
 
 
 def check_context_boundaries(

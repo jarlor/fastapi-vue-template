@@ -97,6 +97,7 @@ All tasks run via `uv run poe <task>`:
 | `poe architecture` | Check bounded-context boundaries        |
 | `poe security`    | Run deterministic security baseline      |
 | `poe api-contracts` | Check OpenAPI and frontend type drift   |
+| `poe frontend-harness` | Check frontend source boundaries     |
 | `poe test`        | Run pytest with coverage                 |
 | `poe harness`     | Run the repository quality gate          |
 

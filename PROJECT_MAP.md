@@ -24,6 +24,8 @@ This is the short source map for agents and humans who need repository context w
 
 Do not inspect `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, coverage output, build output, or generated dependency files as source context.
 
+After the baseline commit, `uv run poe agent-handoff-clean` removes rebuildable dependency trees so broad scans start from source files.
+
 ## Required Gates
 
 Use public Poe tasks:
@@ -31,6 +33,7 @@ Use public Poe tasks:
 ```bash
 uv run poe agent-start
 uv run poe harness
+uv run poe agent-handoff-clean
 ```
 
 Run `uv run poe template-smoke` only for template generation, Copier, generated-project files, sentinel files, or harness behavior.

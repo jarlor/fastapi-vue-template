@@ -26,6 +26,11 @@ REQUIRED_HARNESS_TASKS = (
     "runtime-harness",
     "test",
 )
+REQUIRED_NON_AGGREGATE_TASKS = (
+    "agent-start",
+    "agent-handoff-clean",
+    "template-smoke",
+)
 REQUIRED_EVIDENCE_COMMANDS = (
     "harness",
     "template-smoke",
@@ -34,6 +39,7 @@ REQUIRED_AGENT_GUIDANCE = (
     "00-START-HERE.md",
     "PROJECT_MAP.md",
     "uv run poe agent-start",
+    "uv run poe agent-handoff-clean",
     "git switch -c feat/<short-task-name>",
     "create a focused feature branch before changing product code",
     "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files",
@@ -48,6 +54,7 @@ REQUIRED_README_AGENT_GUIDANCE = (
     "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
     "Read [AGENTS.md](AGENTS.md)",
     "Run `uv run poe agent-start`",
+    "uv run poe agent-handoff-clean",
 )
 PROHIBITED_AGENT_ADAPTERS = (
     "CLAUDE.md",
@@ -114,8 +121,9 @@ def find_missing_poe_tasks(root: Path, pyproject_text: str) -> list[Violation]:
         if f"uv run poe {task}" not in harness_commands:
             violations.append(Violation(path=pyproject, message=f"aggregate harness must run: uv run poe {task}"))
 
-    if "template-smoke" not in poe_tasks:
-        violations.append(Violation(path=pyproject, message="missing Poe task: template-smoke"))
+    for task in REQUIRED_NON_AGGREGATE_TASKS:
+        if task not in poe_tasks:
+            violations.append(Violation(path=pyproject, message=f"missing Poe task: {task}"))
 
     return violations
 
@@ -157,7 +165,13 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
             continue
 
         start_text = start_here.read_text()
-        for expected in ("uv run poe agent-start", "AGENTS.md", "PROJECT_MAP.md", ".venv/"):
+        for expected in (
+            "uv run poe agent-start",
+            "uv run poe agent-handoff-clean",
+            "AGENTS.md",
+            "PROJECT_MAP.md",
+            ".venv/",
+        ):
             if expected not in start_text:
                 violations.append(Violation(path=start_here, message=f"missing startup sentinel guidance: {expected}"))
 
@@ -168,6 +182,7 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
         project_map_text = project_map.read_text()
         for expected in (
             "uv run poe agent-start",
+            "uv run poe agent-handoff-clean",
             "AGENTS.md",
             "src/app_name/",
             "src/frontend/",

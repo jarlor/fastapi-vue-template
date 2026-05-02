@@ -60,6 +60,31 @@ class TestContextBoundaryChecker:
 
         assert violations == []
 
+    def test_fails_context_with_only_package_markers(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        for relative in (
+            "chat/__init__.py",
+            "chat/domain/__init__.py",
+            "chat/application/__init__.py",
+            "chat/interface/api/__init__.py",
+        ):
+            write_context_file(contexts_root, relative, "")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert len(violations) == 1
+        assert violations[0].line == 1
+        assert "context 'chat' only contains empty package scaffolding" in violations[0].message
+
+    def test_allows_context_with_real_source_file(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        write_context_file(contexts_root, "chat/__init__.py", "")
+        write_context_file(contexts_root, "chat/domain/models.py", "from dataclasses import dataclass\n")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert violations == []
+
     def test_allows_same_context_allowed_imports(self, tmp_path: Path) -> None:
         contexts_root = tmp_path / "contexts"
         write_context_file(

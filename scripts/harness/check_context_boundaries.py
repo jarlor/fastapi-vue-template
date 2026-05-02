@@ -217,8 +217,37 @@ def check_context_boundaries(
 
     violations: list[Violation] = []
     for package_name, contexts_root in context_roots:
+        violations.extend(check_context_scaffolds(contexts_root))
         for context_file in iter_context_files(package_name, contexts_root):
             violations.extend(check_file(context_file))
+    return violations
+
+
+def check_context_scaffolds(contexts_root: Path) -> list[Violation]:
+    """Return violations for real contexts that only contain package markers."""
+    if not contexts_root.exists():
+        return []
+
+    violations: list[Violation] = []
+    for context_path in sorted(contexts_root.iterdir()):
+        if not context_path.is_dir() or context_path.name in IGNORED_CONTEXTS:
+            continue
+
+        python_files = [path for path in context_path.rglob("*.py") if path.is_file()]
+        has_source_file = any(path.name != "__init__.py" for path in python_files)
+        if has_source_file:
+            continue
+
+        violations.append(
+            Violation(
+                path=context_path / "__init__.py",
+                line=1,
+                message=(
+                    f"context '{context_path.name}' only contains empty package scaffolding; "
+                    "add real domain, application, interface, or infrastructure source before committing it"
+                ),
+            )
+        )
     return violations
 
 

@@ -9,8 +9,8 @@ Use this skill for feature, fix, refactor, and test work in a project generated 
 
 ## Workflow
 
-1. Start from `AGENTS.md` and complete its init workflow if this is a fresh checkout or generated project.
-2. Confirm the current branch with `git status --short --branch`; after the template baseline commit, create a focused feature branch before editing product code.
+1. Start from `AGENTS.md` and run `uv run poe agent-start` before the first edit.
+2. Complete the init workflow if this is a fresh checkout or generated project. After the template baseline commit, create a focused feature branch before editing product code.
 3. Identify the touched surface: backend context, API contract, frontend API boundary, configuration, security, or tests.
 4. Read only the matching docs routed from `AGENTS.md`; do not inspect `.git/`, `.venv/`, `node_modules/`, caches, logs, or generated coverage files as source context.
 5. Keep changes inside the smallest bounded context or frontend module that owns the behavior.

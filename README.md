@@ -96,6 +96,7 @@ All tasks run via `uv run poe <task>`:
 |-------------------|------------------------------------------|
 | `poe api`         | Start backend (port 8665)                |
 | `poe frontend`    | Start Vite dev server (port 8006)        |
+| `poe agent-start` | Agent startup gate for init and branch state |
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
 | `poe harness-test` | Test harness scripts and template tools |

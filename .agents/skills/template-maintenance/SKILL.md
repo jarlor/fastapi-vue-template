@@ -19,7 +19,7 @@ This repository pairs soft and hard constraints:
 
 ## Workflow
 
-1. Start from `AGENTS.md`.
+1. Start from `AGENTS.md` and run `uv run poe agent-start` before the first edit.
 2. Decide whether the change affects generated projects, template mechanics, harness gates, or agent instructions.
 3. Read only the relevant docs, skills, scripts, CI files, and tests.
 4. Prefer repository-tracked deterministic checks over tool-specific hooks.

@@ -27,6 +27,8 @@ uv run poe test
 
 > **Note**: All `poe` task commands should be prefixed with `uv run` (e.g. `uv run poe lint`, `uv run poe fmt`).
 
+Tests validate behavior and utility code. Repository policy constraints for agent-driven changes are enforced through Poe harness gates such as `uv run poe runtime-harness` and the aggregate `uv run poe harness`.
+
 ## Test Organisation
 
 ```

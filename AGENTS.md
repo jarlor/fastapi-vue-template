@@ -36,9 +36,11 @@ Run these commands from the repository root:
 
 ```bash
 uv run poe lint
+uv run poe architecture
 uv run poe security
 uv run poe api-contracts
 uv run poe frontend-harness
+uv run poe runtime-harness
 uv run poe test
 npm --prefix src/frontend run build
 npm --prefix src/frontend run test
@@ -46,6 +48,7 @@ uv run poe harness
 ```
 
 `uv run poe harness` is the local aggregate gate. New deterministic checks should be added there before they become required in CI.
+Poe task names are the public entrypoints; Python files under `scripts/harness/` are implementation details for repository-owned gates.
 
 ## Documentation Expectations
 

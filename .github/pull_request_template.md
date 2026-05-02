@@ -9,6 +9,7 @@
 - [ ] `uv run poe security`
 - [ ] `uv run poe api-contracts`
 - [ ] `uv run poe frontend-harness`
+- [ ] `uv run poe runtime-harness`
 - [ ] `uv run poe test`
 - [ ] `npm --prefix src/frontend run build`
 - [ ] `npm --prefix src/frontend run test`

@@ -22,7 +22,10 @@ The template ships with full-stack GitHub Actions. CI and governance are always 
 - Frontend install: `npm ci --no-audit --no-fund`
 - Frontend build: `npm run build`
 - Frontend tests: `npm run test`
+- Repository harness: `uv run poe harness`
 - Shell syntax checks for `scripts/cicd/*.sh` and `scripts/deploy/*.sh`
+
+`uv run poe harness` is the aggregate policy gate for repository constraints. It includes deterministic harness checks such as architecture boundaries, security baseline, API contract drift, frontend source boundaries, and runtime app-factory/lifespan baseline.
 
 ## Profiles
 

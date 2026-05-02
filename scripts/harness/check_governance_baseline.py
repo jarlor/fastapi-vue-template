@@ -28,7 +28,7 @@ REQUIRED_HARNESS_TASKS = (
 )
 REQUIRED_NON_AGGREGATE_TASKS = (
     "agent-start",
-    "agent-handoff-clean",
+    "agent-handoff",
     "template-smoke",
 )
 REQUIRED_EVIDENCE_COMMANDS = (
@@ -39,9 +39,9 @@ REQUIRED_AGENT_GUIDANCE = (
     "00-START-HERE.md",
     "PROJECT_MAP.md",
     "uv run poe agent-start",
-    "uv run poe agent-handoff-clean",
-    "git switch -c feat/<short-task-name>",
+    "uv run poe agent-handoff",
     "create a focused feature branch before changing product code",
+    "Do not hand work to an agent on the baseline branch.",
     "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files",
 )
 REQUIRED_CI_POE_TASKS = (
@@ -54,7 +54,7 @@ REQUIRED_README_AGENT_GUIDANCE = (
     "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
     "Read [AGENTS.md](AGENTS.md)",
     "Run `uv run poe agent-start`",
-    "uv run poe agent-handoff-clean",
+    "uv run poe agent-handoff",
 )
 PROHIBITED_AGENT_ADAPTERS = (
     "CLAUDE.md",
@@ -167,7 +167,7 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
         start_text = start_here.read_text()
         for expected in (
             "uv run poe agent-start",
-            "uv run poe agent-handoff-clean",
+            "uv run poe agent-handoff",
             "AGENTS.md",
             "PROJECT_MAP.md",
             ".venv/",
@@ -182,7 +182,7 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
         project_map_text = project_map.read_text()
         for expected in (
             "uv run poe agent-start",
-            "uv run poe agent-handoff-clean",
+            "uv run poe agent-handoff",
             "AGENTS.md",
             "src/app_name/",
             "src/frontend/",

@@ -29,6 +29,7 @@ checker = load_checker_module()
 check_branch_workflow = checker.check_branch_workflow
 agent_start_message = checker.agent_start_message
 clean_agent_handoff = checker.clean_agent_handoff
+prepare_agent_handoff = checker.prepare_agent_handoff
 
 
 def git(root: Path, *args: str) -> None:
@@ -135,3 +136,31 @@ def test_agent_handoff_clean_removes_rebuildable_dependency_trees(tmp_path: Path
     assert not (tmp_path / "src" / "frontend" / "node_modules").exists()
     assert not (tmp_path / "src" / "frontend" / "dist").exists()
     assert source_file.exists()
+
+
+def test_agent_handoff_creates_feature_branch_and_cleans_dependency_trees(tmp_path: Path) -> None:
+    seed_repo(tmp_path)
+    for relative in (".venv/lib/site.py", "src/frontend/node_modules/pkg/index.js"):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("generated\n")
+
+    exit_code, message = prepare_agent_handoff(tmp_path, "feat/chat")
+
+    assert exit_code == 0
+    assert "Agent handoff ready on branch: feat/chat" in message
+    assert "Removed rebuildable agent-handoff paths" in message
+    assert not (tmp_path / ".venv").exists()
+    assert not (tmp_path / "src" / "frontend" / "node_modules").exists()
+    assert checker.current_branch(tmp_path) == "feat/chat"
+
+
+def test_agent_handoff_uses_numbered_branch_when_default_exists(tmp_path: Path) -> None:
+    seed_repo(tmp_path)
+    git(tmp_path, "branch", "feat/agent-work")
+
+    exit_code, message = prepare_agent_handoff(tmp_path)
+
+    assert exit_code == 0
+    assert "Agent handoff ready on branch: feat/agent-work-2" in message
+    assert checker.current_branch(tmp_path) == "feat/agent-work-2"

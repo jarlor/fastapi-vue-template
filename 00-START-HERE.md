@@ -12,4 +12,4 @@ Then read `PROJECT_MAP.md` for the source map and follow `AGENTS.md`. The same s
 
 Do not treat `.git/`, `.venv/`, `node_modules/`, caches, logs, coverage output, or build output as source context.
 
-If a baseline commit already exists and dependency trees are present, `uv run poe agent-handoff-clean` can remove rebuildable trees before agent work.
+After the baseline commit, run `uv run poe agent-handoff` before agent work so the agent starts on a focused branch without rebuildable dependency trees.

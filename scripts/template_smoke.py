@@ -125,9 +125,18 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / "README.md", f"├── {SMOKE_PACKAGE_NAME}/")
     assert_contains(generated / "AGENTS.md", f"src/{SMOKE_PACKAGE_NAME}")
     assert_contains(generated / "AGENTS.md", "git init")
+    assert_contains(generated / "AGENTS.md", "git status --short --branch")
     assert_contains(generated / "AGENTS.md", 'git commit -m "chore: initialize from template"')
+    assert_contains(generated / "AGENTS.md", "git switch -c feat/<short-task-name>")
     assert_contains(generated / "AGENTS.md", "Run `git init` only when `.git/` does not exist yet.")
     assert_contains(generated / "AGENTS.md", "create the template baseline commit before feature work")
+    assert_contains(generated / "AGENTS.md", "create a focused feature branch before changing product code")
+    assert_contains(generated / "AGENTS.md", "Do not continue implementation work on the baseline branch.")
+    assert_contains(
+        generated / "AGENTS.md",
+        "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, "
+        "and generated coverage files",
+    )
     assert_not_contains(generated / "AGENTS.md", "src/app_name")
     assert_contains(generated / "config.yaml", f"port: {SMOKE_BACKEND_PORT}")
     assert_contains(generated / "config.yaml", f"http://localhost:{SMOKE_FRONTEND_PORT}")

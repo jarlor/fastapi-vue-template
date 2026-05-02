@@ -9,11 +9,12 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 ## Default Workflow
 
 1. Read this file first.
-2. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default.
-3. Work on a focused branch. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
-4. Run the smallest relevant Poe checks while editing.
-5. Run `uv run poe harness` before opening or updating a PR.
-6. Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
+2. Use `git status --short --branch` to confirm the current branch and whether this is a fresh generated repository.
+3. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
+4. Work on a focused feature branch before editing product code. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
+5. Run the smallest relevant Poe checks while editing.
+6. Run `uv run poe harness` before opening or updating a PR.
+7. Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
 
 ## Init Workflow
 
@@ -27,9 +28,10 @@ uv run pre-commit install
 uv run poe harness
 git add .
 git commit -m "chore: initialize from template"
+git switch -c feat/<short-task-name>
 ```
 
-Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. Then create or follow the project's integration branch.
+Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. After the baseline commit exists, create a focused feature branch before changing product code. Do not continue implementation work on the baseline branch.
 
 Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
 

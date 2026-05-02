@@ -53,6 +53,16 @@ def seed_repo(root: Path) -> None:
     poe_entries = "\n".join(f'{task} = "echo {task}"' for task in required_tasks)
     harness_entries = "\n".join(f'    {{ cmd = "uv run poe {task}" }},' for task in required_tasks)
     command_entries = "\n".join([*(f"uv run poe {task}" for task in required_tasks), "uv run poe template-smoke"])
+    agents_entries = "\n".join(
+        [
+            command_entries,
+            "git status --short --branch",
+            "git switch -c feat/<short-task-name>",
+            "create a focused feature branch before changing product code",
+            "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, "
+            "and generated coverage files",
+        ]
+    )
 
     write_file(
         root,
@@ -79,7 +89,7 @@ jobs:
       - run: uv run poe template-smoke --full
 """,
     )
-    write_file(root, "AGENTS.md", command_entries)
+    write_file(root, "AGENTS.md", agents_entries)
     write_file(root, ".github/pull_request_template.md", command_entries)
     write_file(
         root,
@@ -146,3 +156,14 @@ jobs:
 
         assert any("missing required evidence command: uv run poe harness" in message for message in messages)
         assert any("missing required evidence command: uv run poe template-smoke" in message for message in messages)
+
+    def test_requires_agent_branch_guidance(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        agents = tmp_path / "AGENTS.md"
+        agents.write_text(agents.read_text().replace("git switch -c feat/<short-task-name>\n", ""))
+
+        messages = messages_for(tmp_path)
+
+        assert any(
+            "missing agent workflow guidance: git switch -c feat/<short-task-name>" in message for message in messages
+        )

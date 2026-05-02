@@ -17,6 +17,7 @@ REQUIRED_HARNESS_TASKS = (
     "lint",
     "harness-test",
     "governance-harness",
+    "supply-chain",
     "architecture",
     "security",
     "api-contracts",

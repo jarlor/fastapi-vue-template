@@ -184,6 +184,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
         run(["npm", "--prefix", "src/frontend", "ci", "--no-audit", "--no-fund"], cwd=generated, env=env)
         run(["uv", "run", "poe", "harness-test"], cwd=generated, env=env)
         run(["uv", "run", "poe", "governance-harness"], cwd=generated, env=env)
+        run(["uv", "run", "poe", "supply-chain"], cwd=generated, env=env)
         run(["uv", "run", "poe", "api-contracts"], cwd=generated, env=env)
         run(["uv", "run", "poe", "frontend-harness"], cwd=generated, env=env)
         run(["uv", "run", "poe", "runtime-harness"], cwd=generated, env=env)

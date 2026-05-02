@@ -13,7 +13,7 @@
       </p>
     </a-card>
 
-    <a-row :gutter="16" style="margin-top: 16px">
+    <a-row :gutter="16" class="stats-row">
       <a-col :span="8">
         <a-card title="Placeholder A">
           <a-statistic title="Items" :value="0" />
@@ -45,5 +45,9 @@
 .welcome-text {
   color: var(--color-text-2);
   margin: 0;
+}
+
+.stats-row {
+  margin-top: 16px;
 }
 </style>

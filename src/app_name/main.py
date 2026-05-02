@@ -22,12 +22,11 @@ __version__ = "0.1.0"
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan: startup and shutdown logic."""
-    from app_name.config import get_settings
     from app_name.core.logging import setup_logging
     from app_name.core.service_factory import build_registry
 
     # 1. Load settings
-    settings = get_settings()
+    settings: Settings = app.state.settings
 
     # 2. Configure logging
     setup_logging(settings.logging)
@@ -60,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version=__version__,
         lifespan=lifespan,
     )
+    app.state.settings = settings
 
     # --- Exception handlers ---
     from app_name.shared.exceptions.handlers import register_exception_handlers
@@ -84,10 +84,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(v1_router)
 
     # --- Health check ---
-    from app_name.shared.schemas.response import APIResponse
+    from app_name.shared.schemas.response import APIResponse, HealthStatus
 
-    @app.get("/health", tags=["health"])
-    async def health() -> dict:
-        return APIResponse.ok(data={"status": "ok", "version": __version__}).model_dump()
+    @app.get("/health", tags=["health"], response_model=APIResponse[HealthStatus])
+    async def health() -> APIResponse[HealthStatus]:
+        return APIResponse.ok(data=HealthStatus(status="ok", version=__version__))
 
     return app

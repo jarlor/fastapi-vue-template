@@ -2,6 +2,16 @@
 
 A production-ready full-stack template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend). It includes a `dev`/`main` Git model, full-stack CI, Conventional Commit governance, semantic-release, and opt-in deployment workflows.
 
+## AI Agent Entry
+
+If you are an AI coding agent working in this repository, do this before broad exploration or edits:
+
+1. Read [PROJECT_MAP.md](PROJECT_MAP.md).
+2. Read [AGENTS.md](AGENTS.md).
+3. Run `uv run poe agent-start`.
+
+Use `uv run poe ...` task names as the public command interface.
+
 ## Tech Stack
 
 | Layer     | Technology                              |
@@ -16,16 +26,16 @@ A production-ready full-stack template built with **FastAPI** (backend) and **Vu
 
 ## Quick Start
 
-### 1. Initialise the project
+### 1. Generate a project
 
 ```bash
-# Clone this template, then run init (auto-derives name from directory):
-uv run poe init                    # my-project/ → my_project
-# Or specify explicitly:
-uv run poe init my_project_name
+copier copy --trust <template-url-or-path> my-project
+cd my-project
 ```
 
-This single command renames all `app_name` references, syncs Python deps, installs npm packages, sets up pre-commit hooks, keeps or creates `main`, and creates `dev` when it is missing.
+Copier records your answers in `.copier-answers.yml` so future template updates can be applied deliberately with `copier update`.
+
+If you delegate implementation to an AI coding agent, tell it to start from [00-START-HERE.md](00-START-HERE.md). The agent-facing execution path is [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md), then `uv run poe agent-start`.
 
 ### 2. Start developing
 
@@ -43,8 +53,12 @@ uv run poe frontend                # start Vite dev server on port 8006
 ├── .env.example             # secret template
 ├── pyproject.toml           # Python project & poe tasks
 ├── scripts/
-│   └── init.sh              # one-time project renaming script (via poe init)
-├── docs/                    # architecture & development guides
+│   ├── harness/             # implementation for poe harness tasks
+│   ├── render_copier_backend.py
+│   └── template_smoke.py
+├── .agents/skills/          # reusable agent workflows
+├── harness_tests/           # tests for harness scripts and template tools
+├── PROJECT_MAP.md           # short source map for agents and humans
 ├── src/
 │   ├── app_name/            # Python backend (FastAPI)
 │   │   ├── main.py          # FastAPI app + lifespan
@@ -66,7 +80,9 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   ├── conftest.py
 │   ├── unit/
 │   └── integration/
-└── CLAUDE.md                # Claude Code instructions
+├── 00-START-HERE.md         # First file for AI coding agents
+├── 00-START-HERE/           # Mirrored startup sentinel for broad scans
+└── AGENTS.md                # Repository instructions for AI coding agents
 ```
 
 ## Bounded Contexts
@@ -82,7 +98,7 @@ Each domain module lives under `src/app_name/contexts/<context_name>/` with four
 
 Contexts **never** import from each other directly. Cross-context communication goes through the event bus or Ports.
 
-See `docs/module-development.md` for the full guide, or `docs/walkthrough.md` for a step-by-step example.
+Normal feature work follows [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md).
 
 ## Poe Tasks
 
@@ -90,12 +106,21 @@ All tasks run via `uv run poe <task>`:
 
 | Task              | Command                                  |
 |-------------------|------------------------------------------|
-| `poe init [name]` | One-time init: rename + deps + hooks (name auto-derived if omitted)|
 | `poe api`         | Start backend (port 8665)                |
 | `poe frontend`    | Start Vite dev server (port 8006)        |
+| `poe agent-start` | Agent startup gate for init and branch state |
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
+| `poe harness-test` | Test harness scripts and template tools |
+| `poe governance-harness` | Check repository governance consistency |
+| `poe supply-chain` | Check supply-chain and CI dependency policy |
+| `poe architecture` | Check bounded-context boundaries        |
+| `poe security`    | Run deterministic security baseline      |
+| `poe api-contracts` | Check OpenAPI and frontend type drift   |
+| `poe frontend-harness` | Check frontend source boundaries     |
+| `poe runtime-harness` | Check app factory, lifespan, and health baseline |
 | `poe test`        | Run pytest with coverage                 |
+| `poe harness`     | Run the repository quality gate          |
 
 ## Git and CI/CD
 
@@ -127,7 +152,7 @@ Deployment profiles:
 | Production only | `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Release from `main`; deploy only when production vars/secrets exist |
 | Test and production | `TEST_DEPLOY_ENABLED=true`, `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Deploy test from `dev`; release and optionally deploy production from `main` |
 
-See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.md).
+Agent-facing branch and PR rules live in [AGENTS.md](AGENTS.md) and [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md).
 
 ## Template Defaults
 
@@ -136,28 +161,21 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 - The template uses a single versioned API prefix: `/api/v1`.
 - `config.yaml` uses `cors.allow_origins` and `frontend.base_url`. Legacy keys are still accepted for compatibility, but new code should use the canonical names.
 
-## Documentation
+## Agent Workflows
 
-| Doc | Content |
-|---|---|
-| [architecture.md](docs/architecture.md) | Layered architecture, DI, event bus |
-| [coding-standards.md](docs/coding-standards.md) | Naming, style, file constraints |
-| [module-development.md](docs/module-development.md) | How to create new contexts |
-| [context-contracts.md](docs/context-contracts.md) | Inter-context communication |
-| [api-conventions.md](docs/api-conventions.md) | REST API design conventions |
-| [frontend-standards.md](docs/frontend-standards.md) | Vue3 component/state/API standards |
-| [security-standards.md](docs/security-standards.md) | 11 security rules + checklist |
-| [testing-guide.md](docs/testing-guide.md) | TDD flow, pytest patterns |
-| [walkthrough.md](docs/walkthrough.md) | End-to-end feature creation example |
-| [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging management |
-| [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
-| [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
-| [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
+AI coding agents should start with [00-START-HERE.md](00-START-HERE.md), [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md). Normal feature work uses [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md); template and harness work uses [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 
 ## Using as a GitHub Template
 
-1. Push this repo to GitHub.
-2. Go to **Settings > General > Template repository** (check the box).
-3. Others (or yourself) can click **"Use this template"** to create a new repo.
-4. Or via CLI: `gh repo create my-project --template yourname/fastapi-vue-template --private --clone`
-5. Run `uv run poe init` in the new repo (auto-derives name from directory).
+Use Copier for new projects:
+
+```bash
+copier copy --trust gh:jarlor/fastapi-vue-template my-project
+cd my-project
+uv sync
+npm --prefix src/frontend ci
+uv run poe harness
+uv run poe agent-handoff
+```
+
+Use `copier update` inside generated projects when this template evolves.

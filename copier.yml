@@ -1,0 +1,86 @@
+project_name:
+  type: str
+  help: Human-facing project name.
+  default: fastapi-vue-app
+
+package_name:
+  type: str
+  help: Python package name under src/.
+  default: "{{ project_name | lower | replace('-', '_') | regex_replace('[^a-z0-9_]', '') }}"
+  validator: >-
+    {% if not (package_name | regex_search('^[a-z][a-z0-9_]*$')) %}
+    package_name must be a valid lowercase Python identifier.
+    {% endif %}
+
+frontend_name:
+  type: str
+  help: Frontend package name.
+  default: "{{ project_name | lower | replace('_', '-') | regex_replace('[^a-z0-9._-]', '-') }}"
+  validator: >-
+    {% if not (frontend_name | regex_search('^[a-z0-9][a-z0-9._-]*$')) %}
+    frontend_name must be npm-safe lowercase text.
+    {% endif %}
+
+backend_port:
+  type: int
+  help: FastAPI development port.
+  default: 8665
+  validator: >-
+    {% if backend_port < 1024 or backend_port > 65535 %}
+    backend_port must be between 1024 and 65535.
+    {% endif %}
+
+frontend_port:
+  type: int
+  help: Vite development port.
+  default: 8006
+  validator: >-
+    {% if frontend_port < 1024 or frontend_port > 65535 %}
+    frontend_port must be between 1024 and 65535.
+    {% elif frontend_port == backend_port %}
+    frontend_port must not equal backend_port.
+    {% endif %}
+
+api_prefix:
+  type: str
+  help: Default versioned API prefix.
+  default: /api/v1
+  validator: >-
+    {% if not api_prefix.startswith('/') %}
+    api_prefix must start with '/'.
+    {% elif api_prefix != '/' and api_prefix.endswith('/') %}
+    api_prefix must not end with '/'.
+    {% endif %}
+
+_answers_file: .copier-answers.yml
+_tasks:
+  - command:
+      - "{{ _copier_python }}"
+      - scripts/render_copier_backend.py
+      - --project-name
+      - "{{ project_name }}"
+      - --package-name
+      - "{{ package_name }}"
+      - --frontend-name
+      - "{{ frontend_name }}"
+      - --backend-port
+      - "{{ backend_port }}"
+      - --frontend-port
+      - "{{ frontend_port }}"
+      - --api-prefix
+      - "{{ api_prefix }}"
+    when: "{{ _copier_operation == 'copy' }}"
+_exclude:
+  - copier.yml
+  - .git
+  - .venv
+  - .pytest_cache
+  - .ruff_cache
+  - .coverage
+  - .DS_Store
+  - docs
+  - harness_tests/test_render_copier_backend.py
+  - src/frontend/node_modules
+  - src/frontend/dist
+  - "**/__pycache__"
+  - "**/*.pyc"

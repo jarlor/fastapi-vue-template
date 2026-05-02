@@ -24,9 +24,16 @@ def build_registry(*, settings: Settings) -> AppRegistry:
     event_bus = InProcessEventBus()
 
     # --- Add context-specific service factories here ---
+    # Keep provider SDKs and external I/O in infrastructure adapters/gateways.
+    # Application services should receive ports, not concrete SDK clients.
+    #
     # Example:
-    #   from app_name.contexts.my_context.application.services import MyService
-    #   my_service_factory = partial(MyService, settings=settings)
+    #   from functools import partial
+    #   from app_name.contexts.chat.application.services.chat_service import ChatService
+    #   from app_name.contexts.chat.infrastructure.gateways.provider_chat_gateway import ProviderChatGateway
+    #
+    #   chat_model_factory = partial(ProviderChatGateway, settings=settings)
+    #   chat_service_factory = lambda: ChatService(model=chat_model_factory())
 
     # --- Register domain event handlers ---
     # Example:

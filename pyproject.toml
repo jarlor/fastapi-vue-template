@@ -25,6 +25,7 @@ dev = [
     "ruff>=0.11",
     "pre-commit>=4.0",
     "python-semantic-release>=9.0",
+    "copier>=9.15.0",
 ]
 
 # ---------------------------------------------------------------------------
@@ -47,12 +48,39 @@ default-groups = ["dev"]
 # Poe Tasks
 # ---------------------------------------------------------------------------
 [tool.poe.tasks]
-init = { cmd = "bash scripts/init.sh" }
 api = "python -m app_name.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
-lint = "ruff check src/app_name"
-fmt = "ruff format src/app_name"
-test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
+lint = "ruff check src/app_name scripts tests harness_tests"
+fmt = "ruff format src/app_name scripts tests harness_tests"
+test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing --cov-fail-under=80"
+harness-test = "python -m pytest harness_tests/ -v"
+agent-start = "python scripts/harness/check_branch_workflow.py --agent-start"
+agent-handoff = "python scripts/harness/check_branch_workflow.py --agent-handoff"
+branch-harness = "python scripts/harness/check_branch_workflow.py"
+governance-harness = "python scripts/harness/check_governance_baseline.py"
+supply-chain = "python scripts/harness/check_supply_chain_baseline.py"
+architecture = "python scripts/harness/check_context_boundaries.py"
+security = "python scripts/harness/check_security_baseline.py"
+api-contracts = "python scripts/harness/check_api_contracts.py"
+api-contracts-write = "python scripts/harness/check_api_contracts.py --write"
+frontend-harness = "python scripts/harness/check_frontend_boundaries.py"
+runtime-harness = "python scripts/harness/check_runtime_baseline.py"
+template-smoke = "python scripts/template_smoke.py"
+harness = [
+    { cmd = "uv run poe lint" },
+    { cmd = "uv run poe harness-test" },
+    { cmd = "uv run poe branch-harness" },
+    { cmd = "uv run poe governance-harness" },
+    { cmd = "uv run poe supply-chain" },
+    { cmd = "uv run poe architecture" },
+    { cmd = "uv run poe security" },
+    { cmd = "uv run poe api-contracts" },
+    { cmd = "uv run poe frontend-harness" },
+    { cmd = "uv run poe runtime-harness" },
+    { cmd = "uv run poe test" },
+    { cmd = "npm --prefix src/frontend run build" },
+    { cmd = "npm --prefix src/frontend run test" },
+]
 
 # ---------------------------------------------------------------------------
 # Ruff

@@ -13,7 +13,7 @@ class TestRequestContext:
         """Middleware should set a request_id in scope state."""
         captured_scope: dict = {}
 
-        async def mock_app(scope, receive, send) -> None:  # noqa: ARG001
+        async def mock_app(scope, receive, send) -> None:
             captured_scope.update(scope)
 
         middleware = RequestContextMiddleware(mock_app)
@@ -28,7 +28,7 @@ class TestRequestContext:
         """get_request_id() should return the current request's ID."""
         captured_id: str | None = None
 
-        async def mock_app(scope, receive, send) -> None:  # noqa: ARG001
+        async def mock_app(scope, receive, send) -> None:
             nonlocal captured_id
             captured_id = get_request_id()
 
@@ -44,7 +44,7 @@ class TestRequestContext:
         """Non-HTTP scopes should pass through without modification."""
         called = False
 
-        async def mock_app(scope, receive, send) -> None:  # noqa: ARG001
+        async def mock_app(scope, receive, send) -> None:
             nonlocal called
             called = True
 

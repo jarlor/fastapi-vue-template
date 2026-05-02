@@ -5,6 +5,13 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 
+class HealthStatus(BaseModel):
+    """Health check response payload."""
+
+    status: str
+    version: str
+
+
 class APIResponse[T](BaseModel):
     """Uniform JSON envelope for all API responses."""
 

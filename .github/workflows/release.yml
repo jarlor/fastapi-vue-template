@@ -12,7 +12,7 @@ on:
         type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
@@ -22,13 +22,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: vars.RELEASE_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore(release):'))
+    permissions:
+      contents: write
     outputs:
       should_deploy: ${{ steps.deploy_gate.outputs.should_deploy }}
       should_backmerge: ${{ steps.deploy_gate.outputs.should_backmerge }}
       prod_deploy_enabled: ${{ steps.deploy_gate.outputs.prod_deploy_enabled }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: main
           fetch-depth: 0
@@ -42,10 +44,10 @@ jobs:
         run: bash scripts/cicd/validate_commit_messages.sh
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version-file: ".python-version"
 
@@ -106,13 +108,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: main
           fetch-depth: 0
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: "22"
           cache: npm
@@ -155,9 +157,11 @@ jobs:
         needs.deploy-prod.result == 'success'
       )
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: main
           fetch-depth: 0

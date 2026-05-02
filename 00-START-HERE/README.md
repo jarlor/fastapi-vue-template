@@ -6,6 +6,6 @@ Before broad repository exploration or code edits, run:
 uv run poe agent-start
 ```
 
-Then follow `AGENTS.md`.
+Then read `PROJECT_MAP.md` for the source map and follow `AGENTS.md`.
 
 Exclude `.git/`, `.venv/`, `node_modules/`, caches, logs, coverage output, and build output from source-context scans.

@@ -32,6 +32,7 @@ REQUIRED_EVIDENCE_COMMANDS = (
 )
 REQUIRED_AGENT_GUIDANCE = (
     "00-START-HERE.md",
+    "PROJECT_MAP.md",
     "uv run poe agent-start",
     "git switch -c feat/<short-task-name>",
     "create a focused feature branch before changing product code",
@@ -149,9 +150,28 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
             continue
 
         start_text = start_here.read_text()
-        for expected in ("uv run poe agent-start", "AGENTS.md", ".venv/"):
+        for expected in ("uv run poe agent-start", "AGENTS.md", "PROJECT_MAP.md", ".venv/"):
             if expected not in start_text:
                 violations.append(Violation(path=start_here, message=f"missing startup sentinel guidance: {expected}"))
+
+    project_map = root / "PROJECT_MAP.md"
+    if not project_map.is_file():
+        violations.append(Violation(path=project_map, message="missing repository source map"))
+    else:
+        project_map_text = project_map.read_text()
+        for expected in (
+            "uv run poe agent-start",
+            "AGENTS.md",
+            "src/app_name/",
+            "src/frontend/",
+            "harness_tests/",
+            "scripts/harness/",
+            ".venv/",
+            "node_modules/",
+            "uv run poe harness",
+        ):
+            if expected not in project_map_text:
+                violations.append(Violation(path=project_map, message=f"missing source map guidance: {expected}"))
 
     for expected in REQUIRED_AGENT_GUIDANCE:
         if expected not in agents_text:

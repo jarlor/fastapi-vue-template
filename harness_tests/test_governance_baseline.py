@@ -58,6 +58,7 @@ def seed_repo(root: Path) -> None:
         [
             command_entries,
             "00-START-HERE.md",
+            "PROJECT_MAP.md",
             "uv run poe agent-start",
             "git status --short --branch",
             "git switch -c feat/<short-task-name>",
@@ -92,10 +93,27 @@ jobs:
       - run: uv run poe template-smoke --full
 """,
     )
-    start_here_text = "Run `uv run poe agent-start`, then follow AGENTS.md. Exclude .venv/.\n"
+    start_here_text = "Run `uv run poe agent-start`, then read PROJECT_MAP.md and follow AGENTS.md. Exclude .venv/.\n"
     write_file(root, "AGENTS.md", agents_entries)
     write_file(root, "00-START-HERE.md", start_here_text)
     write_file(root, "00-START-HERE/README.md", start_here_text)
+    write_file(
+        root,
+        "PROJECT_MAP.md",
+        "\n".join(
+            [
+                "uv run poe agent-start",
+                "AGENTS.md",
+                "src/app_name/",
+                "src/frontend/",
+                "harness_tests/",
+                "scripts/harness/",
+                ".venv/",
+                "node_modules/",
+                "uv run poe harness",
+            ]
+        ),
+    )
     write_file(root, ".github/pull_request_template.md", command_entries)
     write_file(
         root,
@@ -181,3 +199,11 @@ jobs:
         messages = messages_for(tmp_path)
 
         assert any("00-START-HERE.md: missing agent startup sentinel" in message for message in messages)
+
+    def test_requires_project_map(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / "PROJECT_MAP.md").unlink()
+
+        messages = messages_for(tmp_path)
+
+        assert any("PROJECT_MAP.md: missing repository source map" in message for message in messages)

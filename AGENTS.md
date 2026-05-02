@@ -1,6 +1,6 @@
 # AGENTS.md -- AI Agent Operating Contract
 
-If you arrived here from `00-START-HERE.md`, keep using `uv run poe ...` as the public command interface.
+If you arrived here from `00-START-HERE.md` or `PROJECT_MAP.md`, keep using `uv run poe ...` as the public command interface.
 
 ## Repository Role
 
@@ -10,7 +10,7 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 
 ## Default Workflow
 
-1. Read this file first.
+1. Read this file first. If you need a quick source map before editing, read `PROJECT_MAP.md`; do not infer source roots by sweeping the entire tree.
 2. Run `uv run poe agent-start` as the first repository command. It prints `git status --short --branch` and tells you whether to finish init or create a feature branch before editing.
 3. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
 4. Work on a focused feature branch before editing product code. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
@@ -92,6 +92,7 @@ Use docs as task references, not as a mandatory reading set.
 
 | Task | Read |
 |---|---|
+| Quick source map and ignored paths | `PROJECT_MAP.md` |
 | Template generation, Copier, generated project smoke | `.agents/skills/template-maintenance/SKILL.md` and `docs/template-engine.md` |
 | Harness policy, checks, PR evidence | `.agents/skills/template-maintenance/SKILL.md` |
 | Backend structure or new bounded context | `docs/module-development.md` |

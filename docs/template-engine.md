@@ -72,10 +72,10 @@ Current gate mode:
 - `uv run poe template-smoke` runs backend generated-project checks.
 - `uv run poe template-smoke` installs generated frontend dependencies because the generated API contract check uses frontend type generation.
 - `uv run poe template-smoke --full` also runs generated frontend build/test.
-- CI runs full template smoke as a report-only job while runtime and flake rate are monitored.
-- Do not add it to `uv run poe harness` until it is stable enough to be a required local gate.
+- CI requires full template smoke to pass.
+- Keep it outside `uv run poe harness` so the everyday local aggregate gate remains fast, but treat the dedicated CI job as a required template-generation gate.
 
-This keeps the canonical `harness` signal strong while the generated-project smoke path is still being tuned.
+This keeps the canonical `harness` signal focused while still making generated-project validity a hard CI constraint.
 
 ## Placeholder Policy
 
@@ -97,7 +97,7 @@ The smoke test should fail if any sentinel token remains outside documented exam
 Completed migration steps:
 
 1. Copier infrastructure and generated-project smoke.
-   - Add `copier.yml`, the Copier answers-file template, `poe template-smoke`, and report-only CI.
+   - Add `copier.yml`, the Copier answers-file template, `poe template-smoke`, and CI.
 2. Minimal pure Copier backend path.
    - Render the Python package path, imports, `pyproject.toml`, tests, and Poe tasks with Copier/Jinja.
    - Prove `uv run poe architecture` and `uv run poe test` pass in the generated project.
@@ -105,8 +105,8 @@ Completed migration steps:
    - Render frontend package metadata, backend and frontend ports, API prefix, config defaults, and README startup examples.
    - Add targeted assertions that the generated values actually appear where expected.
 4. Full generated-project smoke.
-   - Run generated frontend install/build/test in CI after runtime and flake rate are acceptable.
-   - Promote `template-smoke` from report-only to required only after it is stable.
+   - Run generated frontend install/build/test in CI.
+   - Require `template-smoke` in CI after the generated-project path is stable.
 5. Remove the legacy broad replacement initializer.
    - Removed after docs, tests, and generated-project checks no longer depended on it.
 

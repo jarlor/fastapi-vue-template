@@ -15,6 +15,7 @@
 - [ ] `npm --prefix src/frontend run build`
 - [ ] `npm --prefix src/frontend run test`
 - [ ] `uv run poe harness`
+- [ ] `uv run poe template-smoke`
 
 Notes:
 

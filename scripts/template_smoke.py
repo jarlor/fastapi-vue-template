@@ -117,8 +117,7 @@ def assert_generated_variables(generated: Path) -> None:
 def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
     """Generate a project and run its core checks.
 
-    The generated project must pass backend checks without calling the legacy
-    init.sh broad replacement flow.
+    The generated project must pass backend checks through the Copier path.
     """
     tmp = Path(tempfile.mkdtemp(prefix="fastapi-vue-template-"))
     generated = tmp / SMOKE_PROJECT_NAME

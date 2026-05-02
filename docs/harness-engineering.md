@@ -47,7 +47,7 @@ The first version intentionally uses stable existing checks:
 2. API contract harness: export OpenAPI and generate frontend types.
 3. Frontend harness: add lint rules and smoke tests for main user paths.
 4. Runtime harness: add readiness, liveness, metrics, tracing, and structured logs.
-5. Template engine migration: add Copier scaffolding, generated-project smoke tests, and a safe deprecation path for `scripts/init.sh`.
+5. Template engine: keep Copier generation and generated-project smoke tests as repository-owned guarantees.
 
 New checks should start narrow or report-only when false positives are likely. Promote them to required CI checks after they are stable.
 

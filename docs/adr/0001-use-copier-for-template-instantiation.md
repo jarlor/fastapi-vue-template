@@ -4,11 +4,13 @@
 
 Accepted
 
+Updated: Copier is now the canonical generation path, and the previous broad replacement initializer has been removed.
+
 ## Context
 
 This repository is a production-grade project template for Vibe Coding and Harness Engineering. A generated project should be reproducible, updateable, and verifiable by repository-owned harness checks.
 
-The current `scripts/init.sh` flow performs broad text replacement of `app_name` and then repairs known false replacements. That approach is fragile because:
+The previous broad initializer performed text replacement of `app_name` and then repaired known false replacements. That approach was fragile because:
 
 - placeholder replacement can affect semantic field names and examples
 - new files can accidentally opt into replacement
@@ -31,16 +33,16 @@ Cookiecutter remains a valid one-shot scaffolding tool, but it does not make tem
 
 ## Consequences
 
-- `scripts/init.sh` will be deprecated rather than extended.
+- The broad initializer is removed rather than extended.
 - New template variables must be declared in `copier.yml`.
-- The repository harness must include a generated-project smoke test before `scripts/init.sh` is removed.
+- The repository harness includes a generated-project smoke test for the Copier path.
 - Documentation must teach `copier copy` for new projects and `copier update` for existing generated projects.
-- Broad `app_name` replacement should be removed after Copier covers package names, project names, frontend metadata, and ports.
+- Broad `app_name` replacement is not a supported generation mechanism.
 
 ## Migration Plan
 
-1. Add `copier.yml` and a minimal generated-project smoke test while keeping `scripts/init.sh`.
+1. Add `copier.yml` and a minimal generated-project smoke test.
 2. Move package/module placeholders to Copier variables.
-3. Replace broad text replacement in `scripts/init.sh` with a compatibility message or thin Copier wrapper.
+3. Replace broad text replacement with Copier-owned rendering.
 4. Add a template harness check that generates a temporary project and runs its core checks.
-5. Remove `scripts/init.sh` once the Copier path is fully documented and tested.
+5. Remove the broad initializer once the Copier path is fully documented and tested.

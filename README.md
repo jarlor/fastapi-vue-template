@@ -16,16 +16,14 @@ A production-ready full-stack template built with **FastAPI** (backend) and **Vu
 
 ## Quick Start
 
-### 1. Initialise the project
+### 1. Generate a project
 
 ```bash
-# Clone this template, then run init (auto-derives name from directory):
-uv run poe init                    # my-project/ → my_project
-# Or specify explicitly:
-uv run poe init my_project_name
+copier copy --trust <template-url-or-path> my-project
+cd my-project
 ```
 
-This single command renames all `app_name` references, syncs Python deps, installs npm packages, sets up pre-commit hooks, keeps or creates `main`, and creates `dev` when it is missing.
+Copier records your answers in `.copier-answers.yml` so future template updates can be applied deliberately with `copier update`.
 
 ### 2. Start developing
 
@@ -43,7 +41,9 @@ uv run poe frontend                # start Vite dev server on port 8006
 ├── .env.example             # secret template
 ├── pyproject.toml           # Python project & poe tasks
 ├── scripts/
-│   └── init.sh              # one-time project renaming script (via poe init)
+│   ├── check_context_boundaries.py
+│   ├── render_copier_backend.py
+│   └── template_smoke.py
 ├── docs/                    # architecture & development guides
 ├── src/
 │   ├── app_name/            # Python backend (FastAPI)
@@ -90,7 +90,6 @@ All tasks run via `uv run poe <task>`:
 
 | Task              | Command                                  |
 |-------------------|------------------------------------------|
-| `poe init [name]` | One-time init: rename + deps + hooks (name auto-derived if omitted)|
 | `poe api`         | Start backend (port 8665)                |
 | `poe frontend`    | Start Vite dev server (port 8006)        |
 | `poe lint`        | Run Ruff linter                          |
@@ -161,8 +160,14 @@ AI coding agents should start with [AGENTS.md](AGENTS.md). Keep required agent w
 
 ## Using as a GitHub Template
 
-1. Push this repo to GitHub.
-2. Go to **Settings > General > Template repository** (check the box).
-3. Others (or yourself) can click **"Use this template"** to create a new repo.
-4. Or via CLI: `gh repo create my-project --template yourname/fastapi-vue-template --private --clone`
-5. Run `uv run poe init` in the new repo (auto-derives name from directory).
+Use Copier for new projects:
+
+```bash
+copier copy --trust gh:jarlor/fastapi-vue-template my-project
+cd my-project
+uv sync
+npm --prefix src/frontend ci
+uv run poe harness
+```
+
+Use `copier update` inside generated projects when this template evolves.

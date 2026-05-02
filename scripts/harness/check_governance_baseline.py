@@ -31,6 +31,7 @@ REQUIRED_EVIDENCE_COMMANDS = (
     "template-smoke",
 )
 REQUIRED_AGENT_GUIDANCE = (
+    "00-START-HERE.md",
     "uv run poe agent-start",
     "git switch -c feat/<short-task-name>",
     "create a focused feature branch before changing product code",
@@ -141,6 +142,17 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
     """Return missing workflow guidance that keeps agents on the intended path."""
     path = root / "AGENTS.md"
     violations: list[Violation] = []
+    for relative in ("00-START-HERE.md", "00-START-HERE/README.md"):
+        start_here = root / relative
+        if not start_here.is_file():
+            violations.append(Violation(path=start_here, message="missing agent startup sentinel"))
+            continue
+
+        start_text = start_here.read_text()
+        for expected in ("uv run poe agent-start", "AGENTS.md", ".venv/"):
+            if expected not in start_text:
+                violations.append(Violation(path=start_here, message=f"missing startup sentinel guidance: {expected}"))
+
     for expected in REQUIRED_AGENT_GUIDANCE:
         if expected not in agents_text:
             violations.append(Violation(path=path, message=f"missing agent workflow guidance: {expected}"))

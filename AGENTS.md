@@ -1,5 +1,7 @@
 # AGENTS.md -- AI Agent Operating Contract
 
+If you arrived here from `00-START-HERE.md`, keep using `uv run poe ...` as the public command interface.
+
 ## Repository Role
 
 This is a production-oriented FastAPI + Vue project template for Vibe Coding and Harness Engineering.

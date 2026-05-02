@@ -156,9 +156,7 @@ class Settings(BaseSettings):
             and frontend_data.get("host")
             and frontend_data.get("dev_port")
         ):
-            resolved_host = (
-                "localhost" if frontend_data["host"] in {"0.0.0.0", "::"} else frontend_data["host"]
-            )
+            resolved_host = "localhost" if frontend_data["host"] in {"0.0.0.0", "::"} else frontend_data["host"]
             normalized["frontend"] = {
                 **frontend_data,
                 "base_url": f"http://{resolved_host}:{frontend_data['dev_port']}",

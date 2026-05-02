@@ -42,12 +42,10 @@ class TestExceptionHandlers:
         assert response.status_code == 422
         assert b'"code":10000' in response.body
         assert b'"success":false' in response.body
-        assert b'body -> email: Field required' in response.body
+        assert b"body -> email: Field required" in response.body
 
     async def test_unhandled_error_handler_hides_internal_details(self) -> None:
         response = await unhandled_error_handler(MagicMock(), RuntimeError("boom"))
 
         assert response.status_code == 500
-        assert response.body == (
-            b'{"code":10099,"success":false,"data":null,"message":"An unexpected error occurred"}'
-        )
+        assert response.body == (b'{"code":10099,"success":false,"data":null,"message":"An unexpected error occurred"}')

@@ -83,7 +83,7 @@ jobs:
     write_file(root, ".github/pull_request_template.md", command_entries)
     write_file(
         root,
-        ".agents/skills/harness-engineering/SKILL.md",
+        ".agents/skills/template-maintenance/SKILL.md",
         "Skills provide reusable workflow. Poe tasks provide hard constraints.",
     )
 

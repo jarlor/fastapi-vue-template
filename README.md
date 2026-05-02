@@ -1,6 +1,6 @@
 # app_name
 
-A production-ready project template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend). Database integration is optional -- see [docs/database-patterns.md](docs/database-patterns.md).
+A production-ready full-stack template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend). It includes a `dev`/`main` Git model, full-stack CI, Conventional Commit governance, semantic-release, and opt-in deployment workflows.
 
 ## Tech Stack
 
@@ -25,7 +25,7 @@ uv run poe init                    # my-project/ → my_project
 uv run poe init my_project_name
 ```
 
-This single command: renames all `app_name` references, syncs Python deps, installs npm packages, and sets up pre-commit hooks.
+This single command renames all `app_name` references, syncs Python deps, installs npm packages, sets up pre-commit hooks, keeps or creates `main`, and creates `dev` when it is missing.
 
 ### 2. Start developing
 
@@ -97,6 +97,38 @@ All tasks run via `uv run poe <task>`:
 | `poe fmt`         | Run Ruff formatter                       |
 | `poe test`        | Run pytest with coverage                 |
 
+## Git and CI/CD
+
+The template uses a `dev`/`main` model:
+
+- `dev` is the integration branch.
+- `main` is the production truth branch.
+- `test` and `staging` are environments, not branches.
+- Feature and fix branches open PRs into `dev`.
+- Release PRs flow from `dev` into `main`.
+- Hotfix branches start from `main` and are backmerged into `dev`.
+
+GitHub Actions are included under `.github/workflows`:
+
+| Workflow | Default behavior |
+|---|---|
+| `ci.yml` | Backend lint/test, frontend build/test, shell syntax checks |
+| `pr-governance.yml` | Conventional Commit PR title checks |
+| `commit-governance.yml` | Landed commit subject checks on `dev` and `main` |
+| `deploy-test.yml` | Skipped unless `TEST_DEPLOY_ENABLED=true` |
+| `release.yml` | Skipped unless `RELEASE_ENABLED=true`; production deploy is also opt-in |
+| `backmerge-main-to-dev.yml` | Manual recovery backmerge |
+
+Deployment profiles:
+
+| Profile | Variables | Behavior |
+|---|---|---|
+| CI only | none | Full-stack CI and governance only |
+| Production only | `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Release from `main`; deploy only when production vars/secrets exist |
+| Test and production | `TEST_DEPLOY_ENABLED=true`, `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Deploy test from `dev`; release and optionally deploy production from `main` |
+
+See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.md).
+
 ## Template Defaults
 
 - `src/app_name/main.py` exposes a `create_app()` factory. The dev runner uses `uvicorn` factory mode instead of importing a module-level app singleton.
@@ -119,6 +151,8 @@ All tasks run via `uv run poe <task>`:
 | [walkthrough.md](docs/walkthrough.md) | End-to-end feature creation example |
 | [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging management |
 | [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
+| [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
+| [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
 
 ## Using as a GitHub Template
 

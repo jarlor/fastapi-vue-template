@@ -120,13 +120,28 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Install pre-commit hooks
+# 5. Install pre-commit hooks and prepare branches
 # ---------------------------------------------------------------------------
 if command -v pre-commit &>/dev/null || (command -v uv &>/dev/null && uv run pre-commit --version &>/dev/null 2>&1); then
     echo "  [5/5] Installing pre-commit hooks ..."
     uv run pre-commit install 2>/dev/null || true
 else
     echo "  [5/5] pre-commit not available, skipping hooks ..."
+fi
+
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    if ! git show-ref --verify --quiet refs/heads/main; then
+        git branch main
+    fi
+    if ! git show-ref --verify --quiet refs/heads/dev; then
+        git branch dev
+    fi
+    if [[ "$CURRENT_BRANCH" == "main" ]]; then
+        git switch dev >/dev/null 2>&1 || git checkout dev
+    fi
+else
+    echo "  Git repository not found -- skipping branch setup."
 fi
 
 echo ""
@@ -136,3 +151,8 @@ echo "Next steps:"
 echo "  1. cp .env.example .env        # add your secrets"
 echo "  2. uv run poe api              # start the backend"
 echo "  3. uv run poe frontend         # start the frontend"
+echo ""
+echo "GitHub setup:"
+echo "  - Protect main and dev."
+echo "  - Keep deployment disabled unless the matching *_DEPLOY_ENABLED variable is true."
+echo "  - Set RELEASE_ENABLED=true only after RELEASE_TOKEN can push release commits and tags."

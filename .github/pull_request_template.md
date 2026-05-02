@@ -13,7 +13,7 @@ Notes:
 
 - [ ] No public API, context contract, config, or deployment behavior changed.
 - [ ] Public API changed and docs/tests were updated.
-- [ ] Context contract changed and `docs/context-contracts.md` was updated.
+- [ ] Backend boundaries or runtime contracts changed and relevant docs/tests/harness were updated.
 - [ ] Config or secret requirements changed and examples/docs were updated.
 - [ ] Deployment or CI behavior changed and docs were updated.
 

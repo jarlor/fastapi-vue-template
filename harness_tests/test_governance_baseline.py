@@ -82,7 +82,9 @@ jobs:
     write_file(root, "AGENTS.md", command_entries)
     write_file(root, ".github/pull_request_template.md", command_entries)
     write_file(
-        root, "docs/harness-engineering.md", "Docs provide soft constraints. Poe tasks provide hard constraints."
+        root,
+        ".agents/skills/harness-engineering/SKILL.md",
+        "Skills provide reusable workflow. Poe tasks provide hard constraints.",
     )
 
 

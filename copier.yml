@@ -78,6 +78,7 @@ _exclude:
   - .ruff_cache
   - .coverage
   - .DS_Store
+  - docs/adr
   - harness_tests/test_render_copier_backend.py
   - src/frontend/node_modules
   - src/frontend/dist

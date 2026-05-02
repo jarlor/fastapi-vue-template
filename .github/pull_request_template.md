@@ -5,6 +5,7 @@
 ## Harness Evidence
 
 - [ ] `uv run poe lint`
+- [ ] `uv run poe architecture`
 - [ ] `uv run poe test`
 - [ ] `npm --prefix src/frontend run build`
 - [ ] `npm --prefix src/frontend run test`

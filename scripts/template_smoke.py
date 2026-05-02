@@ -207,7 +207,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Also run generated frontend build/test. Slower; intended for CI report-only checks.",
+        help="Also run generated frontend build/test. Slower; intended for the required CI template smoke gate.",
     )
     return parser.parse_args()
 

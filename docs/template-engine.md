@@ -112,3 +112,27 @@ The smoke script should:
 6. scan the generated project for unresolved sentinel tokens that should have been rendered
 
 Keep the first implementation narrow. Do not introduce optional database, auth, observability, or deployment profiles in the Copier PR.
+
+## Implementation Sequence
+
+Use small PRs with explicit scope:
+
+1. Copier infrastructure and compatibility smoke.
+   - Add `copier.yml`, the Copier answers-file template, `poe template-smoke`, and report-only CI.
+   - The smoke may call `scripts/init.sh` only as a migration bridge.
+   - Do not describe this stage as a pure Copier-generated project path.
+2. Minimal pure Copier backend path.
+   - Render the Python package path, imports, `pyproject.toml`, tests, and Poe tasks with Copier/Jinja.
+   - Remove the `init.sh` call from `scripts/template_smoke.py`.
+   - Prove `uv run poe architecture` and `uv run poe test` pass in the generated project.
+3. Configuration and frontend variables.
+   - Render frontend package metadata, backend and frontend ports, API prefix, config defaults, and README startup examples.
+   - Add targeted assertions that the generated values actually appear where expected.
+4. Full generated-project smoke.
+   - Run generated frontend install/build/test in CI after runtime and flake rate are acceptable.
+   - Promote `template-smoke` from report-only to required only after it is stable.
+5. Deprecate and remove `scripts/init.sh`.
+   - First replace it with a compatibility warning or thin Copier wrapper.
+   - Delete it only after docs, tests, and generated-project checks no longer depend on it.
+
+Copier owns template rendering and generated-project updateability. Harness scripts, Poe tasks, CI, and project skills own deterministic verification and workflow policy.

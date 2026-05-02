@@ -25,6 +25,7 @@ dev = [
     "ruff>=0.11",
     "pre-commit>=4.0",
     "python-semantic-release>=9.0",
+    "copier>=9.15.0",
 ]
 
 # ---------------------------------------------------------------------------
@@ -54,6 +55,7 @@ lint = "ruff check src/app_name scripts tests"
 fmt = "ruff format src/app_name scripts tests"
 test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
 architecture = "python scripts/check_context_boundaries.py"
+template-smoke = "python scripts/template_smoke.py"
 harness = [
     { cmd = "uv run poe lint" },
     { cmd = "uv run poe architecture" },

@@ -76,6 +76,14 @@ class TestContextBoundaryChecker:
         assert violations[0].line == 1
         assert "context 'chat' only contains empty package scaffolding" in violations[0].message
 
+    def test_ignores_runtime_cache_directories(self, tmp_path: Path) -> None:
+        contexts_root = tmp_path / "contexts"
+        write_context_file(contexts_root, "__pycache__/__init__.py", "")
+
+        violations = check_test_contexts(contexts_root)
+
+        assert violations == []
+
     def test_allows_context_with_real_source_file(self, tmp_path: Path) -> None:
         contexts_root = tmp_path / "contexts"
         write_context_file(contexts_root, "chat/__init__.py", "")

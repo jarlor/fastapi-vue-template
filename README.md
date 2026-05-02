@@ -188,7 +188,7 @@ cd my-project
 uv sync
 npm --prefix src/frontend ci
 uv run poe harness
-uv run poe agent-handoff-clean
+uv run poe agent-handoff
 ```
 
 Use `copier update` inside generated projects when this template evolves.

@@ -31,6 +31,7 @@ CLEANUP_PATHS = (
     "src/frontend/node_modules",
     "src/frontend/dist",
 )
+DEFAULT_HANDOFF_BRANCH = "feat/agent-work"
 
 
 def run_git(args: list[str], root: Path) -> subprocess.CompletedProcess[str]:
@@ -155,6 +156,43 @@ def clean_agent_handoff(root: Path = PROJECT_ROOT) -> list[str]:
     return removed
 
 
+def next_available_branch(root: Path, preferred: str) -> str:
+    """Return preferred branch name, or a numbered variant when it already exists."""
+    candidate = preferred
+    suffix = 2
+    while run_git(["show-ref", "--verify", "--quiet", f"refs/heads/{candidate}"], root).returncode == 0:
+        candidate = f"{preferred}-{suffix}"
+        suffix += 1
+    return candidate
+
+
+def prepare_agent_handoff(root: Path = PROJECT_ROOT, branch_name: str | None = None) -> tuple[int, str]:
+    """Prepare a generated repository before handing it to an agent."""
+    root = root.resolve()
+    if not inside_work_tree(root):
+        return (1, "No git repository detected. Complete the AGENTS.md init workflow before agent handoff.")
+
+    if not has_commits(root):
+        return (1, "No baseline commit exists yet. Commit the generated template baseline before agent handoff.")
+
+    branch = current_branch(root) or "<detached>"
+    if branch in BASELINE_BRANCHES:
+        target_branch = next_available_branch(root, branch_name or DEFAULT_HANDOFF_BRANCH)
+        switch_result = run_git(["switch", "-c", target_branch], root)
+        if switch_result.returncode != 0:
+            return (1, switch_result.stderr.strip() or f"Failed to create handoff branch: {target_branch}")
+        branch = target_branch
+
+    removed = clean_agent_handoff(root)
+    message_lines = [f"Agent handoff ready on branch: {branch}"]
+    if removed:
+        message_lines.append("Removed rebuildable agent-handoff paths:")
+        message_lines.extend(f"- {path}" for path in removed)
+    else:
+        message_lines.append("No rebuildable agent-handoff paths found.")
+    return (0, "\n".join(message_lines))
+
+
 def main() -> int:
     """CLI entry point."""
     if "--agent-start" in sys.argv:
@@ -163,15 +201,13 @@ def main() -> int:
         print(message, file=stream)
         return exit_code
 
-    if "--agent-handoff-clean" in sys.argv:
-        removed = clean_agent_handoff()
-        if removed:
-            print("Removed rebuildable agent-handoff paths:")
-            for path in removed:
-                print(f"- {path}")
-        else:
-            print("No rebuildable agent-handoff paths found.")
-        return 0
+    if "--agent-handoff" in sys.argv:
+        index = sys.argv.index("--agent-handoff")
+        branch_name = sys.argv[index + 1] if len(sys.argv) > index + 1 else None
+        exit_code, message = prepare_agent_handoff(branch_name=branch_name)
+        stream = sys.stderr if exit_code else sys.stdout
+        print(message, file=stream)
+        return exit_code
 
     violations = check_branch_workflow()
     if violations:

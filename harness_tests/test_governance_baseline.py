@@ -53,7 +53,7 @@ def seed_repo(root: Path) -> None:
     )
     non_aggregate_tasks = (
         "agent-start",
-        "agent-handoff-clean",
+        "agent-handoff",
     )
     poe_entries = "\n".join(f'{task} = "echo {task}"' for task in required_tasks)
     non_aggregate_entries = "\n".join(f'{task} = "echo {task}"' for task in non_aggregate_tasks)
@@ -65,10 +65,10 @@ def seed_repo(root: Path) -> None:
             "00-START-HERE.md",
             "PROJECT_MAP.md",
             "uv run poe agent-start",
-            "uv run poe agent-handoff-clean",
+            "uv run poe agent-handoff",
             "git status --short --branch",
-            "git switch -c feat/<short-task-name>",
             "create a focused feature branch before changing product code",
+            "Do not hand work to an agent on the baseline branch.",
             "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, "
             "and generated coverage files",
         ]
@@ -102,7 +102,7 @@ jobs:
     )
     start_here_text = (
         "Run `uv run poe agent-start`, then read PROJECT_MAP.md and follow AGENTS.md. "
-        "Use `uv run poe agent-handoff-clean` after baseline commit. Exclude .venv/.\n"
+        "Use `uv run poe agent-handoff` after baseline commit. Exclude .venv/.\n"
     )
     write_file(root, "AGENTS.md", agents_entries)
     write_file(root, "00-START-HERE.md", start_here_text)
@@ -117,7 +117,7 @@ jobs:
                 "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
                 "Read [AGENTS.md](AGENTS.md)",
                 "Run `uv run poe agent-start`",
-                "uv run poe agent-handoff-clean",
+                "uv run poe agent-handoff",
             ]
         ),
     )
@@ -127,7 +127,7 @@ jobs:
         "\n".join(
             [
                 "uv run poe agent-start",
-                "uv run poe agent-handoff-clean",
+                "uv run poe agent-handoff",
                 "AGENTS.md",
                 "src/app_name/",
                 "src/frontend/",
@@ -209,12 +209,13 @@ jobs:
     def test_requires_agent_branch_guidance(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
         agents = tmp_path / "AGENTS.md"
-        agents.write_text(agents.read_text().replace("git switch -c feat/<short-task-name>\n", ""))
+        agents.write_text(agents.read_text().replace("Do not hand work to an agent on the baseline branch.\n", ""))
 
         messages = messages_for(tmp_path)
 
         assert any(
-            "missing agent workflow guidance: git switch -c feat/<short-task-name>" in message for message in messages
+            "missing agent workflow guidance: Do not hand work to an agent on the baseline branch." in message
+            for message in messages
         )
 
     def test_requires_agent_startup_sentinel(self, tmp_path: Path) -> None:

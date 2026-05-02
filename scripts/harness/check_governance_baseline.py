@@ -29,6 +29,12 @@ REQUIRED_EVIDENCE_COMMANDS = (
     "harness",
     "template-smoke",
 )
+REQUIRED_AGENT_GUIDANCE = (
+    "git status --short --branch",
+    "git switch -c feat/<short-task-name>",
+    "create a focused feature branch before changing product code",
+    "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files",
+)
 REQUIRED_CI_POE_TASKS = (
     "harness",
     "template-smoke --full",
@@ -130,6 +136,16 @@ def find_missing_evidence_entries(root: Path, text: str, relative: str) -> list[
     return violations
 
 
+def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]:
+    """Return missing workflow guidance that keeps agents on the intended path."""
+    path = root / "AGENTS.md"
+    violations: list[Violation] = []
+    for expected in REQUIRED_AGENT_GUIDANCE:
+        if expected not in agents_text:
+            violations.append(Violation(path=path, message=f"missing agent workflow guidance: {expected}"))
+    return violations
+
+
 def check_governance_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     """Check repository governance invariants."""
     root = root.resolve()
@@ -144,6 +160,7 @@ def check_governance_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     violations.extend(find_missing_ci_entries(root, ci_text))
     violations.extend(find_missing_evidence_entries(root, agents_text, "AGENTS.md"))
     violations.extend(find_missing_evidence_entries(root, pr_template_text, ".github/pull_request_template.md"))
+    violations.extend(find_missing_agent_guidance(root, agents_text))
 
     return violations
 

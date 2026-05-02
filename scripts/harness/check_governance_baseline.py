@@ -31,7 +31,7 @@ REQUIRED_EVIDENCE_COMMANDS = (
     "template-smoke",
 )
 REQUIRED_AGENT_GUIDANCE = (
-    "git status --short --branch",
+    "uv run poe agent-start",
     "git switch -c feat/<short-task-name>",
     "create a focused feature branch before changing product code",
     "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files",

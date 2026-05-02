@@ -128,6 +128,7 @@ def assert_generated_variables(generated: Path) -> None:
     assert_contains(generated / "README.md", f"├── {SMOKE_PACKAGE_NAME}/")
     assert_contains(generated / "AGENTS.md", f"src/{SMOKE_PACKAGE_NAME}")
     assert_contains(generated / "AGENTS.md", "git init")
+    assert_contains(generated / "AGENTS.md", "uv run poe agent-start")
     assert_contains(generated / "AGENTS.md", "git status --short --branch")
     assert_contains(generated / "AGENTS.md", 'git commit -m "chore: initialize from template"')
     assert_contains(generated / "AGENTS.md", "git switch -c feat/<short-task-name>")

@@ -9,7 +9,7 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 ## Default Workflow
 
 1. Read this file first.
-2. Use `git status --short --branch` to confirm the current branch and whether this is a fresh generated repository.
+2. Run `uv run poe agent-start` as the first repository command. It prints `git status --short --branch` and tells you whether to finish init or create a feature branch before editing.
 3. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
 4. Work on a focused feature branch before editing product code. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
 5. Run the smallest relevant Poe checks while editing.
@@ -69,6 +69,7 @@ uv run poe template-smoke
 Targeted checks:
 
 ```bash
+uv run poe agent-start
 uv run poe lint
 uv run poe harness-test
 uv run poe governance-harness

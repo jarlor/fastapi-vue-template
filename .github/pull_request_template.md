@@ -5,6 +5,7 @@
 ## Harness Evidence
 
 - [ ] `uv run poe harness`
+- [ ] `uv run poe agent-start` (agent-driven changes only, before first edit)
 - [ ] `uv run poe template-smoke` (required when template generation, Copier config, generated-project files, or harness behavior changes)
 
 Notes:

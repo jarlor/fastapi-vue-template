@@ -57,6 +57,7 @@ def seed_repo(root: Path) -> None:
     agents_entries = "\n".join(
         [
             command_entries,
+            "uv run poe agent-start",
             "git status --short --branch",
             "git switch -c feat/<short-task-name>",
             "create a focused feature branch before changing product code",

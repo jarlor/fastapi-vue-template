@@ -27,6 +27,7 @@ def load_checker_module() -> ModuleType:
 
 checker = load_checker_module()
 check_branch_workflow = checker.check_branch_workflow
+agent_start_message = checker.agent_start_message
 
 
 def git(root: Path, *args: str) -> None:
@@ -68,6 +69,37 @@ def test_blocks_product_changes_on_baseline_branch(tmp_path: Path) -> None:
     assert len(violations) == 1
     assert "baseline branch 'main'" in violations[0]
     assert "src/example/feature.py" in violations[0]
+
+
+def test_agent_start_prompts_for_feature_branch_on_clean_baseline(tmp_path: Path) -> None:
+    seed_repo(tmp_path)
+
+    exit_code, message = agent_start_message(tmp_path)
+
+    assert exit_code == 0
+    assert "## main" in message
+    assert "git switch -c feat/<short-task-name>" in message
+
+
+def test_agent_start_fails_after_baseline_branch_product_edit(tmp_path: Path) -> None:
+    seed_repo(tmp_path)
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = 'example'\n")
+
+    exit_code, message = agent_start_message(tmp_path)
+
+    assert exit_code == 1
+    assert "product/template changes detected on baseline branch 'main'" in message
+    assert "pyproject.toml" in message
+
+
+def test_agent_start_passes_on_feature_branch(tmp_path: Path) -> None:
+    seed_repo(tmp_path)
+    git(tmp_path, "switch", "-c", "feat/chat")
+
+    exit_code, message = agent_start_message(tmp_path)
+
+    assert exit_code == 0
+    assert "Agent startup gate passed" in message
 
 
 def test_allows_product_changes_on_feature_branch(tmp_path: Path) -> None:

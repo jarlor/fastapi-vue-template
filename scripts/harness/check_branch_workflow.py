@@ -101,8 +101,51 @@ def check_branch_workflow(root: Path = PROJECT_ROOT) -> list[str]:
     ]
 
 
+def agent_start_message(root: Path = PROJECT_ROOT) -> tuple[int, str]:
+    """Return the agent startup gate status and message."""
+    root = root.resolve()
+    if not inside_work_tree(root):
+        return (
+            0,
+            "No git repository detected. If this is a fresh generated project, run the AGENTS.md init workflow first.",
+        )
+
+    branch = current_branch(root) or "<detached>"
+    status_result = run_git(["status", "--short", "--branch"], root)
+    status = status_result.stdout.strip() if status_result.returncode == 0 else f"## {branch}"
+
+    if not has_commits(root):
+        return (
+            0,
+            f"{status}\nNo baseline commit exists yet. Complete the AGENTS.md init workflow "
+            "and commit the template baseline.",
+        )
+
+    violations = check_branch_workflow(root)
+    if violations:
+        return (
+            1,
+            f"{status}\n{violations[0]}",
+        )
+
+    if branch in BASELINE_BRANCHES:
+        return (
+            0,
+            f"{status}\nBaseline branch detected. Before editing product code, run: "
+            "git switch -c feat/<short-task-name>",
+        )
+
+    return (0, f"{status}\nAgent startup gate passed. Continue on this focused branch.")
+
+
 def main() -> int:
     """CLI entry point."""
+    if "--agent-start" in sys.argv:
+        exit_code, message = agent_start_message()
+        stream = sys.stderr if exit_code else sys.stdout
+        print(message, file=stream)
+        return exit_code
+
     violations = check_branch_workflow()
     if violations:
         print("Branch workflow violations:", file=sys.stderr)

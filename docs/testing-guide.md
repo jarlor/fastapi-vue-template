@@ -8,7 +8,7 @@ Follow the RED-GREEN-IMPROVE cycle for every change:
 2. **GREEN** -- Write the minimal implementation to make the test pass.
 3. **IMPROVE** -- Refactor while keeping all tests green.
 
-Target **80 %+** code coverage.
+The application test gate requires at least **80%** code coverage.
 
 ## Tools
 

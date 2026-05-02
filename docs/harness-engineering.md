@@ -39,6 +39,7 @@ The first version intentionally uses stable existing checks:
 - backend lint
 - harness script and template-tool tests
 - governance consistency checks for public Poe gates, CI entrypoints, PR evidence, and prohibited product-specific agent adapters
+- supply-chain checks for SHA-pinned actions, dependency update coverage, least-privilege workflow permissions, lockfiles, and reproducible install commands
 - architecture boundary checks
 - security baseline checks
 - API contract drift checks

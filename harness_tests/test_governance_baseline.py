@@ -42,6 +42,7 @@ def seed_repo(root: Path) -> None:
         "lint",
         "harness-test",
         "governance-harness",
+        "supply-chain",
         "architecture",
         "security",
         "api-contracts",

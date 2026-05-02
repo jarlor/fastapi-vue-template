@@ -26,7 +26,7 @@ The template ships with full-stack GitHub Actions. CI and governance are always 
 - Generated-project smoke: `uv run poe template-smoke --full`
 - Shell syntax checks for `scripts/cicd/*.sh` and `scripts/deploy/*.sh`
 
-`uv run poe harness` is the aggregate policy gate for repository constraints. It includes harness implementation tests, governance consistency checks, deterministic harness checks such as architecture boundaries, security baseline, API contract drift, frontend source boundaries, and runtime app-factory/lifespan baseline.
+`uv run poe harness` is the aggregate policy gate for repository constraints. It includes harness implementation tests, governance consistency checks, supply-chain checks, deterministic harness checks such as architecture boundaries, security baseline, API contract drift, frontend source boundaries, and runtime app-factory/lifespan baseline.
 `uv run poe template-smoke --full` is a separate required CI gate because Copier generation is slower than the everyday local harness but is a core template guarantee.
 
 ## Profiles

@@ -62,6 +62,10 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
             ]
         ),
     )
+    write(
+        tmp_path / "README.md",
+        "# app_name\n\n`src/app_name/main.py`\n│   ├── app_name/            # Python backend (FastAPI)\n",
+    )
     write(tmp_path / "tests" / "conftest.py", 'from app_name.config import Settings\napp_name="app_name_test"\n')
 
     render_backend(
@@ -90,6 +94,12 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
     assert 'packages = ["src/sample_project"]' in pyproject_text
     assert 'api = "python -m sample_project.run_api"' in pyproject_text
     assert "--cov=src/sample_project" in pyproject_text
+
+    readme_text = (tmp_path / "README.md").read_text()
+    assert "# sample-project" in readme_text
+    assert "src/sample_project/main.py" in readme_text
+    assert "├── sample_project/" in readme_text
+    assert "├── app_name/" not in readme_text
 
     config_text = (tmp_path / "config.yaml").read_text()
     assert "port: 8765" in config_text

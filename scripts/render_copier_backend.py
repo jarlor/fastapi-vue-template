@@ -92,10 +92,13 @@ def render_text(
     health_operation_id = f"health_{api_operation_prefix}_health_get" if api_operation_prefix else "health_health_get"
     replacements = {
         f"src/{TEMPLATE_PACKAGE}": f"src/{package_name}",
+        f"src/{TEMPLATE_PACKAGE}/": f"src/{package_name}/",
+        f"├── {TEMPLATE_PACKAGE}/": f"├── {package_name}/",
         f"from {TEMPLATE_PACKAGE}": f"from {package_name}",
         f"import {TEMPLATE_PACKAGE}": f"import {package_name}",
         f"{TEMPLATE_PACKAGE}.": f"{package_name}.",
         f"{TEMPLATE_PACKAGE}.main:create_app": f"{package_name}.main:create_app",
+        "# app_name": f"# {project_name}",
         'name = "app_name"': f'name = "{project_name}"',
         'title="app_name"': f'title="{project_name}"',
         '"title": "app_name"': f'"title": "{project_name}"',

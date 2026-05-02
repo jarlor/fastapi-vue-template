@@ -59,6 +59,36 @@ class TestFrontendBoundaryChecker:
         assert len(violations) == 1
         assert "HTTP clients must be used through src/frontend/src/api" in violations[0].message
 
+    def test_blocks_event_source_outside_api_layer(self, tmp_path: Path, monkeypatch) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
+        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
+        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
+        write_frontend_file(
+            frontend_src,
+            "pages/Chat.vue",
+            '<script setup lang="ts">\nnew EventSource("/chat");\n</script>\n',
+        )
+
+        violations = checker.check_frontend_boundaries()
+
+        assert len(violations) == 1
+        assert "HTTP clients must be used through src/frontend/src/api" in violations[0].message
+
+    def test_blocks_axios_stream_response_type_in_browser_code(self, tmp_path: Path, monkeypatch) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
+        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
+        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
+        write_frontend_file(
+            frontend_src,
+            "api/chat.ts",
+            'api.post("/chat", body, { responseType: "stream" });\n',
+        )
+
+        violations = checker.check_frontend_boundaries()
+
+        assert len(violations) == 1
+        assert "Browser streaming must not use Axios responseType stream" in violations[0].message
+
     def test_allows_vue_component_style_choices(self, tmp_path: Path, monkeypatch) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
         monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)

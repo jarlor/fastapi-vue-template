@@ -25,6 +25,12 @@ SENTINELS = (
     "__BACKEND_PORT__",
     "__FRONTEND_PORT__",
     "__API_PREFIX__",
+    "{{package_name}}",
+    "{{ package_name }}",
+    "{{project_name}}",
+    "{{ project_name }}",
+    "{{frontend_name}}",
+    "{{ frontend_name }}",
 )
 SENTINEL_ALLOWLIST = {
     "docs/template-engine.md",
@@ -95,6 +101,14 @@ def assert_contains(path: Path, expected: str) -> None:
         raise RuntimeError(msg)
 
 
+def assert_not_contains(path: Path, unexpected: str) -> None:
+    """Fail if a generated text file contains stale template text."""
+    content = path.read_text()
+    if unexpected in content:
+        msg = f"{path} contains unexpected text: {unexpected}"
+        raise RuntimeError(msg)
+
+
 def assert_generated_variables(generated: Path) -> None:
     """Assert that Copier variables affected concrete generated files."""
     assert_contains(generated / ".copier-answers.yml", f"project_name: {SMOKE_PROJECT_NAME}")
@@ -106,6 +120,11 @@ def assert_generated_variables(generated: Path) -> None:
 
     assert_contains(generated / "pyproject.toml", f'name = "{SMOKE_PROJECT_NAME}"')
     assert_contains(generated / "pyproject.toml", f"src/{SMOKE_PACKAGE_NAME}")
+    assert_contains(generated / "README.md", f"# {SMOKE_PROJECT_NAME}")
+    assert_contains(generated / "README.md", f"src/{SMOKE_PACKAGE_NAME}")
+    assert_contains(generated / "README.md", f"├── {SMOKE_PACKAGE_NAME}/")
+    assert_contains(generated / "AGENTS.md", f"src/{SMOKE_PACKAGE_NAME}")
+    assert_not_contains(generated / "AGENTS.md", "src/app_name")
     assert_contains(generated / "config.yaml", f"port: {SMOKE_BACKEND_PORT}")
     assert_contains(generated / "config.yaml", f"http://localhost:{SMOKE_FRONTEND_PORT}")
     assert_contains(generated / "src" / "frontend" / "package.json", f'"name": "{SMOKE_FRONTEND_NAME}"')

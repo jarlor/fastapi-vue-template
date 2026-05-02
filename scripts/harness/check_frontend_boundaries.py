@@ -15,8 +15,15 @@ HTTP_PATTERNS = (
     'from "axios"',
     "from 'axios'",
     "import axios",
+    "EventSource",
     "fetch(",
     "XMLHttpRequest",
+)
+AXIOS_STREAM_PATTERNS = (
+    'responseType: "stream"',
+    "responseType: 'stream'",
+    'responseType:"stream"',
+    "responseType:'stream'",
 )
 
 
@@ -81,10 +88,29 @@ def check_http_boundary(path: Path, lines: list[str]) -> list[Violation]:
     return violations
 
 
+def check_browser_streaming(path: Path, lines: list[str]) -> list[Violation]:
+    """Block Node-style Axios streams in browser frontend code."""
+    violations: list[Violation] = []
+    for line_number, line in enumerate(lines, start=1):
+        compact_line = line.replace(" ", "")
+        if any(pattern in line or pattern.replace(" ", "") in compact_line for pattern in AXIOS_STREAM_PATTERNS):
+            violations.append(
+                Violation(
+                    path=path,
+                    line=line_number,
+                    message=(
+                        "Browser streaming must not use Axios responseType stream; "
+                        "use fetch ReadableStream or EventSource in src/frontend/src/api"
+                    ),
+                )
+            )
+    return violations
+
+
 def check_file(path: Path) -> list[Violation]:
     """Check one frontend source file."""
     lines = path.read_text().splitlines()
-    return check_http_boundary(path, lines)
+    return [*check_http_boundary(path, lines), *check_browser_streaming(path, lines)]
 
 
 def check_frontend_boundaries() -> list[Violation]:

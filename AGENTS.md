@@ -10,7 +10,7 @@ The repository-owned harness is the authority. Docs and skills guide work; Poe t
 
 1. Read this file first.
 2. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default.
-3. Work on a focused branch from `dev`.
+3. Work on a focused branch. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
 4. Run the smallest relevant Poe checks while editing.
 5. Run `uv run poe harness` before opening or updating a PR.
 6. Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
@@ -26,7 +26,9 @@ uv run pre-commit install
 uv run poe harness
 ```
 
-If the project was just generated or template behavior changed, also run:
+Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
+
+For template maintenance, also run:
 
 ```bash
 uv run poe template-smoke
@@ -41,12 +43,12 @@ Then choose the task workflow:
 
 - Backend code lives under `src/app_name`.
 - Frontend code lives under `src/frontend`.
-- Backend features should be built as bounded contexts under `src/app_name/contexts/<context_name>/`.
+- Backend features should be built as bounded contexts under the generated backend package's `contexts/<context_name>/` directory.
 - Contexts must not import each other directly. Use events or ports.
 - Keep route handlers thin. Business logic belongs in application services.
 - Keep `create_app()` as the app factory. Do not reintroduce a module-level FastAPI app singleton.
 - Avoid module-level side effects such as creating settings, opening files, connecting to databases, or making network calls.
-- Frontend components must not call `axios`, `fetch`, or `XMLHttpRequest` directly. Use `src/frontend/src/api`.
+- Frontend components must not call `axios`, `fetch`, `EventSource`, or `XMLHttpRequest` directly. Use `src/frontend/src/api`.
 
 ## Commands
 

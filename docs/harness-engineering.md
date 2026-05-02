@@ -38,6 +38,7 @@ The first version intentionally uses stable existing checks:
 
 - backend lint
 - harness script and template-tool tests
+- governance consistency checks for public Poe gates, CI entrypoints, PR evidence, and prohibited product-specific agent adapters
 - architecture boundary checks
 - security baseline checks
 - API contract drift checks
@@ -48,6 +49,8 @@ The first version intentionally uses stable existing checks:
 - frontend tests
 
 Poe task names are the stable local and CI entrypoints. Scripts under `scripts/harness/` implement those gates and are not a separate public script API. Use `tests/` for application behavior and utility coverage; use `harness_tests/` for checker and template-tool self-tests; use harness tasks for repository workflow, architectural boundaries, generated-template guarantees, and other constraints that AI coding agents must not bypass.
+
+`uv run poe governance-harness` is the bridge between soft and hard constraints. It does not review prose quality. It checks mechanical repository facts that should not drift: required Poe tasks exist, the aggregate harness calls them through public Poe entrypoints, CI uses public Poe entrypoints for required gates, PR evidence lists required commands, and product-specific agent adapter files are not reintroduced.
 
 ## Roadmap
 

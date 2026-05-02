@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke-test the migration-period Copier template path."""
+"""Smoke-test the Copier template path by generating a temporary project."""
 
 from __future__ import annotations
 
@@ -78,9 +78,8 @@ def build_env() -> dict[str, str]:
 def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
     """Generate a project and run its core checks.
 
-    This is a compatibility smoke while Copier rendering is being introduced.
-    The generated project still runs init.sh until package/module paths are
-    fully rendered by Copier templates.
+    The generated project must pass backend checks without calling the legacy
+    init.sh broad replacement flow.
     """
     tmp = Path(tempfile.mkdtemp(prefix="fastapi-vue-template-"))
     generated = tmp / "sample-project"
@@ -93,6 +92,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
                 "run",
                 "copier",
                 "copy",
+                "--trust",
                 "--vcs-ref=HEAD",
                 "--defaults",
                 "--data",
@@ -107,12 +107,18 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
             cwd=PROJECT_ROOT,
             env=env,
         )
-        print("Running migration compatibility init bridge.", flush=True)
-        run(["bash", "scripts/init.sh", "sample_project"], cwd=generated, env=env)
 
         answers_file = generated / ".copier-answers.yml"
         if not answers_file.exists():
             msg = "Copier answers file was not generated"
+            raise RuntimeError(msg)
+
+        generated_package = generated / "src" / "sample_project"
+        if not generated_package.is_dir():
+            msg = "Generated backend package directory was not rendered"
+            raise RuntimeError(msg)
+        if (generated / "src" / "app_name").exists():
+            msg = "Template backend package directory survived generation"
             raise RuntimeError(msg)
 
         sentinel_matches = scan_for_sentinels(generated)
@@ -126,7 +132,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
             run(["npm", "--prefix", "src/frontend", "run", "build"], cwd=generated, env=env)
             run(["npm", "--prefix", "src/frontend", "run", "test"], cwd=generated, env=env)
 
-        print(f"Generated project compatibility smoke passed: {generated}", flush=True)
+        print(f"Generated project smoke passed: {generated}", flush=True)
         return generated
     finally:
         if keep:

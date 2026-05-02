@@ -9,6 +9,7 @@ from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER_PATH = ROOT / "scripts" / "check_context_boundaries.py"
+TEST_PACKAGE = "app_name"
 
 
 def load_checker_module() -> ModuleType:
@@ -30,7 +31,7 @@ check_context_boundaries = checker.check_context_boundaries
 
 def check_test_contexts(contexts_root: Path):
     """Run the checker against the temporary test package."""
-    return check_context_boundaries([("app_name", contexts_root)])
+    return check_context_boundaries([(TEST_PACKAGE, contexts_root)])
 
 
 def write_context_file(contexts_root: Path, relative: str, content: str) -> Path:
@@ -52,7 +53,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "_template/domain/entities.py",
-            "from app_name.contexts.other.application.services import OtherService\n",
+            f"from {TEST_PACKAGE}.contexts.other.application.services import OtherService\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -64,12 +65,12 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/application/services/create_order.py",
-            "from app_name.contexts.orders.domain.entities import Order\n",
+            f"from {TEST_PACKAGE}.contexts.orders.domain.entities import Order\n",
         )
         write_context_file(
             contexts_root,
             "orders/interface/api/router.py",
-            "from app_name.contexts.orders.application.services.create_order import CreateOrder\n",
+            f"from {TEST_PACKAGE}.contexts.orders.application.services.create_order import CreateOrder\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -81,7 +82,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/application/services/create_order.py",
-            "from app_name.contexts.users.domain.entities import User\n",
+            f"from {TEST_PACKAGE}.contexts.users.domain.entities import User\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -95,7 +96,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/domain/entities.py",
-            "from app_name.contexts.orders.application.services.create_order import CreateOrder\n",
+            f"from {TEST_PACKAGE}.contexts.orders.application.services.create_order import CreateOrder\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -108,7 +109,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/application/services/create_order.py",
-            "from app_name.contexts.orders.infrastructure.repositories.order_repo import OrderRepository\n",
+            f"from {TEST_PACKAGE}.contexts.orders.infrastructure.repositories.order_repo import OrderRepository\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -121,7 +122,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/application/services/create_order.py",
-            "from app_name.contexts import users\n",
+            f"from {TEST_PACKAGE}.contexts import users\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -134,7 +135,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/domain/entities.py",
-            "from app_name.contexts.orders import application\n",
+            f"from {TEST_PACKAGE}.contexts.orders import application\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -153,7 +154,7 @@ class TestContextBoundaryChecker:
         violations = check_test_contexts(contexts_root)
 
         assert len(violations) == 1
-        assert "app_name.contexts.orders.application.services.create_order" in violations[0].message
+        assert f"{TEST_PACKAGE}.contexts.orders.application.services.create_order" in violations[0].message
 
     def test_fails_relative_cross_context_import(self, tmp_path: Path) -> None:
         contexts_root = tmp_path / "contexts"
@@ -173,7 +174,7 @@ class TestContextBoundaryChecker:
         write_context_file(
             contexts_root,
             "orders/infrastructure/repositories/order_repo.py",
-            "from app_name.contexts.orders.application.ports.repositories import OrderRepositoryPort\n",
+            f"from {TEST_PACKAGE}.contexts.orders.application.ports.repositories import OrderRepositoryPort\n",
         )
 
         violations = check_test_contexts(contexts_root)
@@ -186,8 +187,8 @@ class TestContextBoundaryChecker:
             contexts_root,
             "orders/domain/entities.py",
             "\n"
-            "from app_name.contexts.orders.application.services.create_order import CreateOrder\n"
-            "import app_name.contexts.users.domain.entities\n",
+            f"from {TEST_PACKAGE}.contexts.orders.application.services.create_order import CreateOrder\n"
+            f"import {TEST_PACKAGE}.contexts.users.domain.entities\n",
         )
 
         violations = check_test_contexts(contexts_root)

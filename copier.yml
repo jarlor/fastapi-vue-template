@@ -53,6 +53,15 @@ api_prefix:
     {% endif %}
 
 _answers_file: .copier-answers.yml
+_tasks:
+  - command:
+      - "{{ _copier_python }}"
+      - scripts/render_copier_backend.py
+      - --project-name
+      - "{{ project_name }}"
+      - --package-name
+      - "{{ package_name }}"
+    when: "{{ _copier_operation == 'copy' }}"
 _exclude:
   - copier.yml
   - .git
@@ -63,5 +72,6 @@ _exclude:
   - .DS_Store
   - src/frontend/node_modules
   - src/frontend/dist
+  - tests/unit/test_init_script.py
   - "**/__pycache__"
   - "**/*.pyc"

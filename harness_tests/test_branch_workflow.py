@@ -50,6 +50,14 @@ def test_allows_clean_baseline_branch(tmp_path: Path) -> None:
     assert check_branch_workflow(tmp_path) == []
 
 
+def test_allows_generated_files_before_baseline_commit(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-b", "main")
+    (tmp_path / "src" / "example").mkdir(parents=True)
+    (tmp_path / "src" / "example" / "feature.py").write_text("VALUE = 1\n")
+
+    assert check_branch_workflow(tmp_path) == []
+
+
 def test_blocks_product_changes_on_baseline_branch(tmp_path: Path) -> None:
     seed_repo(tmp_path)
     (tmp_path / "src" / "example").mkdir(parents=True)

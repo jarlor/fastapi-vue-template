@@ -47,6 +47,12 @@ def current_branch(root: Path) -> str | None:
     return branch or None
 
 
+def has_commits(root: Path) -> bool:
+    """Return whether the repository has at least one commit."""
+    result = run_git(["rev-parse", "--verify", "HEAD"], root)
+    return result.returncode == 0
+
+
 def changed_paths(root: Path) -> list[str]:
     """Return changed tracked and untracked paths."""
     result = run_git(["status", "--short", "--untracked-files=all"], root)
@@ -73,6 +79,9 @@ def check_branch_workflow(root: Path = PROJECT_ROOT) -> list[str]:
     """Return branch workflow violations."""
     root = root.resolve()
     if not inside_work_tree(root):
+        return []
+
+    if not has_commits(root):
         return []
 
     branch = current_branch(root)

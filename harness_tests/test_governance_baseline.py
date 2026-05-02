@@ -52,7 +52,7 @@ def seed_repo(root: Path) -> None:
     )
     poe_entries = "\n".join(f'{task} = "echo {task}"' for task in required_tasks)
     harness_entries = "\n".join(f'    {{ cmd = "uv run poe {task}" }},' for task in required_tasks)
-    command_entries = "\n".join(f"uv run poe {task}" for task in required_tasks)
+    command_entries = "\n".join([*(f"uv run poe {task}" for task in required_tasks), "uv run poe template-smoke"])
 
     write_file(
         root,
@@ -136,12 +136,11 @@ jobs:
             "CI must run public Poe entrypoint: uv run poe template-smoke --full" in message for message in messages
         )
 
-    def test_requires_pr_template_evidence(self, tmp_path: Path) -> None:
+    def test_requires_pr_template_aggregate_evidence(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
-        write_file(tmp_path, ".github/pull_request_template.md", "uv run poe harness\n")
+        write_file(tmp_path, ".github/pull_request_template.md", "uv run poe lint\n")
 
         messages = messages_for(tmp_path)
 
-        assert any(
-            "missing required evidence command: uv run poe governance-harness" in message for message in messages
-        )
+        assert any("missing required evidence command: uv run poe harness" in message for message in messages)
+        assert any("missing required evidence command: uv run poe template-smoke" in message for message in messages)

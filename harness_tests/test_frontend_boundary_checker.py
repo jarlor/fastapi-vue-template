@@ -59,7 +59,7 @@ class TestFrontendBoundaryChecker:
         assert len(violations) == 1
         assert "HTTP clients must be used through src/frontend/src/api" in violations[0].message
 
-    def test_blocks_vue_component_baseline_violations(self, tmp_path: Path, monkeypatch) -> None:
+    def test_allows_vue_component_style_choices(self, tmp_path: Path, monkeypatch) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
         monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
         monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
@@ -73,19 +73,4 @@ class TestFrontendBoundaryChecker:
             ),
         )
 
-        messages = [violation.message for violation in checker.check_frontend_boundaries()]
-
-        assert 'Vue components must use <script setup lang="ts">' in messages
-        assert "Vue component styles must be scoped" in messages
-        assert "static inline styles are prohibited; use classes or dynamic :style" in messages
-
-    def test_blocks_large_vue_components(self, tmp_path: Path, monkeypatch) -> None:
-        frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
-        write_frontend_file(frontend_src, "pages/Large.vue", "\n".join(["<template>"] * 301))
-
-        violations = checker.check_frontend_boundaries()
-
-        assert violations[0].line == 301
-        assert "Vue components must stay at or below 300 lines" in violations[0].message
+        assert checker.check_frontend_boundaries() == []

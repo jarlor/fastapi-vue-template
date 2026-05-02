@@ -210,7 +210,7 @@ LOGGING__LEVEL=DEBUG uv run poe api
 
 Loguru 的 `retention` 参数自动清理过期日志。但仍建议:
 
-1. **监控 logs/ 目录大小** — 添加磁盘告警 (参考 `docs/extra/observability.md`)
+1. **监控 logs/ 目录大小** — 添加适合目标基础设施的磁盘告警
 2. **按大小轮转** — 高流量场景改用 `rotation: "500 MB"` 替代按天轮转
 3. **外部归档** — 如需长期保留，配合 logrotate 或 S3 上传脚本
 

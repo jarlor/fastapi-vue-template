@@ -4,20 +4,8 @@
 
 ## Harness Evidence
 
-- [ ] `uv run poe lint`
-- [ ] `uv run poe harness-test`
-- [ ] `uv run poe governance-harness`
-- [ ] `uv run poe supply-chain`
-- [ ] `uv run poe architecture`
-- [ ] `uv run poe security`
-- [ ] `uv run poe api-contracts`
-- [ ] `uv run poe frontend-harness`
-- [ ] `uv run poe runtime-harness`
-- [ ] `uv run poe test`
-- [ ] `npm --prefix src/frontend run build`
-- [ ] `npm --prefix src/frontend run test`
 - [ ] `uv run poe harness`
-- [ ] `uv run poe template-smoke`
+- [ ] `uv run poe template-smoke` (required when template generation, Copier config, generated-project files, or harness behavior changes)
 
 Notes:
 

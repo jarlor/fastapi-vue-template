@@ -83,7 +83,7 @@ Each domain module lives under `src/app_name/contexts/<context_name>/` with four
 
 Contexts **never** import from each other directly. Cross-context communication goes through the event bus or Ports.
 
-See `docs/module-development.md` for the full guide, or `docs/walkthrough.md` for a step-by-step example.
+See `docs/module-development.md` for the full guide.
 
 ## Poe Tasks
 
@@ -96,6 +96,8 @@ All tasks run via `uv run poe <task>`:
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
 | `poe harness-test` | Test harness scripts and template tools |
+| `poe governance-harness` | Check repository governance consistency |
+| `poe supply-chain` | Check supply-chain and CI dependency policy |
 | `poe architecture` | Check bounded-context boundaries        |
 | `poe security`    | Run deterministic security baseline      |
 | `poe api-contracts` | Check OpenAPI and frontend type drift   |
@@ -155,9 +157,7 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 | [frontend-standards.md](docs/frontend-standards.md) | Vue3 component/state/API standards |
 | [security-standards.md](docs/security-standards.md) | 11 security rules + checklist |
 | [testing-guide.md](docs/testing-guide.md) | TDD flow, pytest patterns |
-| [walkthrough.md](docs/walkthrough.md) | End-to-end feature creation example |
 | [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging management |
-| [database-patterns.md](docs/database-patterns.md) | Database integration guide (MongoDB / PostgreSQL) |
 | [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
 | [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
 | [harness-engineering.md](docs/harness-engineering.md) | Repository-owned agent workflow and quality gates |

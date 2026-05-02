@@ -25,6 +25,10 @@ REQUIRED_HARNESS_TASKS = (
     "runtime-harness",
     "test",
 )
+REQUIRED_EVIDENCE_COMMANDS = (
+    "harness",
+    "template-smoke",
+)
 REQUIRED_CI_POE_TASKS = (
     "harness",
     "template-smoke --full",
@@ -119,7 +123,7 @@ def find_missing_evidence_entries(root: Path, text: str, relative: str) -> list[
     """Return missing required harness evidence entries in an instruction file."""
     path = root / relative
     violations: list[Violation] = []
-    for task in REQUIRED_HARNESS_TASKS:
+    for task in REQUIRED_EVIDENCE_COMMANDS:
         command = f"uv run poe {task}"
         if command not in text:
             violations.append(Violation(path=path, message=f"missing required evidence command: {command}"))

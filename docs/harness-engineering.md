@@ -8,11 +8,11 @@ Repository-tracked files are the authority:
 
 - `AGENTS.md` defines shared agent behavior.
 - `.agents/skills/` contains reusable, repository-owned agent workflows.
-- Tool-specific files such as `CLAUDE.md` are adapters only.
+- Required workflow belongs in repository-owned instructions, not tool-specific adapter files.
 - `poe` tasks, scripts, pre-commit, and CI enforce rules.
 - Pull requests record evidence that the harness passed.
 
-Do not rely on one AI product's private hooks or rules for required behavior. Product-specific integrations may improve local ergonomics, but the same change must remain reviewable and enforceable from the repository alone.
+Do not rely on one AI product's private hooks or rules for required behavior. Product-specific integrations may improve local ergonomics, but do not commit adapter files unless they add repository-owned value that cannot live in `AGENTS.md`, skills, scripts, or docs.
 
 ## Harness Layers
 

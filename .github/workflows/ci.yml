@@ -117,8 +117,13 @@ jobs:
       - name: Install Python dependencies
         run: uv sync --frozen --group dev
 
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Run generated-project smoke
-        run: uv run poe template-smoke
+        run: uv run poe template-smoke --full
 
   deploy-scripts:
     name: Deploy script syntax

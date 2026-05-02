@@ -26,9 +26,22 @@ def write(path: Path, content: str) -> None:
 
 
 def test_render_backend_moves_package_and_updates_backend_references(tmp_path: Path) -> None:
-    write(tmp_path / "src" / "app_name" / "main.py", 'from app_name.config import Settings\ntitle="app_name"\n')
+    write(
+        tmp_path / "src" / "app_name" / "main.py",
+        'from app_name.config import Settings\ntitle="app_name"\n',
+    )
     write(tmp_path / "src" / "app_name" / "config.py", '    app_name: str = "app_name"\n')
     write(tmp_path / "src" / "app_name" / "run_api.py", '"app_name.main:create_app"\n')
+    write(
+        tmp_path / "config.yaml",
+        'server:\n  port: 8665\nfrontend:\n  base_url: "http://localhost:8006"\n',
+    )
+    write(tmp_path / "src" / "frontend" / "package.json", '{\n  "name": "frontend"\n}\n')
+    write(
+        tmp_path / "src" / "frontend" / "vite.config.ts",
+        'env.APP_FRONTEND_PORT || "8006"; env.APP_BACKEND_URL || "http://127.0.0.1:8665";\n',
+    )
+    write(tmp_path / "src" / "frontend" / "src" / "api" / "index.ts", 'baseURL: "/api/v1"\n')
     write(
         tmp_path / "pyproject.toml",
         '\n'.join(
@@ -43,7 +56,15 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
     )
     write(tmp_path / "tests" / "conftest.py", 'from app_name.config import Settings\napp_name="app_name_test"\n')
 
-    render_backend(tmp_path, project_name="sample-project", package_name="sample_project")
+    render_backend(
+        tmp_path,
+        project_name="sample-project",
+        package_name="sample_project",
+        frontend_name="sample-frontend",
+        backend_port=8765,
+        frontend_port=8016,
+        api_prefix="/api/smoke",
+    )
 
     assert not (tmp_path / "src" / "app_name").exists()
     assert (tmp_path / "src" / "sample_project").is_dir()
@@ -62,6 +83,16 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
     assert 'api = "python -m sample_project.run_api"' in pyproject_text
     assert "--cov=src/sample_project" in pyproject_text
 
+    config_text = (tmp_path / "config.yaml").read_text()
+    assert "port: 8765" in config_text
+    assert "http://localhost:8016" in config_text
+
+    assert '"name": "sample-frontend"' in (tmp_path / "src" / "frontend" / "package.json").read_text()
+    vite_text = (tmp_path / "src" / "frontend" / "vite.config.ts").read_text()
+    assert 'APP_FRONTEND_PORT || "8016"' in vite_text
+    assert 'APP_BACKEND_URL || "http://127.0.0.1:8765"' in vite_text
+    assert 'baseURL: "/api/smoke"' in (tmp_path / "src" / "frontend" / "src" / "api" / "index.ts").read_text()
+
     conftest_text = (tmp_path / "tests" / "conftest.py").read_text()
     assert "from sample_project.config import Settings" in conftest_text
     assert 'app_name="sample_project_test"' in conftest_text
@@ -70,3 +101,18 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
 def test_validate_package_name_rejects_invalid_names() -> None:
     with pytest.raises(ValueError, match="Invalid package_name"):
         validate_package_name("Bad-Name")
+
+
+def test_render_backend_rejects_invalid_ports(tmp_path: Path) -> None:
+    write(tmp_path / "src" / "app_name" / "__init__.py", "")
+
+    with pytest.raises(ValueError, match="backend_port and frontend_port must differ"):
+        render_backend(
+            tmp_path,
+            project_name="sample-project",
+            package_name="sample_project",
+            frontend_name="sample-frontend",
+            backend_port=8765,
+            frontend_port=8765,
+            api_prefix="/api/smoke",
+        )

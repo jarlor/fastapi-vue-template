@@ -16,7 +16,7 @@ from loguru import logger
 
 from app_name.config import Settings
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 
 @asynccontextmanager

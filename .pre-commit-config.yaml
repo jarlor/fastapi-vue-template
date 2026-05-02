@@ -2,14 +2,14 @@ repos:
   - repo: local
     hooks:
       - id: format
-        name: ruff format
-        entry: uv run ruff format src/app_name
+        name: poe fmt
+        entry: uv run poe fmt
         language: system
         pass_filenames: false
         types: [python]
       - id: lint
-        name: ruff lint
-        entry: uv run ruff check src/app_name --fix
+        name: poe lint
+        entry: uv run poe lint
         language: system
         pass_filenames: false
         types: [python]

@@ -54,6 +54,7 @@ lint = "ruff check src/app_name scripts tests harness_tests"
 fmt = "ruff format src/app_name scripts tests harness_tests"
 test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing --cov-fail-under=80"
 harness-test = "python -m pytest harness_tests/ -v"
+branch-harness = "python scripts/harness/check_branch_workflow.py"
 governance-harness = "python scripts/harness/check_governance_baseline.py"
 supply-chain = "python scripts/harness/check_supply_chain_baseline.py"
 architecture = "python scripts/harness/check_context_boundaries.py"
@@ -66,6 +67,7 @@ template-smoke = "python scripts/template_smoke.py"
 harness = [
     { cmd = "uv run poe lint" },
     { cmd = "uv run poe harness-test" },
+    { cmd = "uv run poe branch-harness" },
     { cmd = "uv run poe governance-harness" },
     { cmd = "uv run poe supply-chain" },
     { cmd = "uv run poe architecture" },

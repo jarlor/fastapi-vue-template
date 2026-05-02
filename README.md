@@ -2,6 +2,16 @@
 
 A production-ready full-stack template built with **FastAPI** (backend) and **Vue 3 + Arco Design + Vite** (frontend). It includes a `dev`/`main` Git model, full-stack CI, Conventional Commit governance, semantic-release, and opt-in deployment workflows.
 
+## AI Agent Entry
+
+If you are an AI coding agent working in this repository, do this before broad exploration or edits:
+
+1. Read [PROJECT_MAP.md](PROJECT_MAP.md).
+2. Read [AGENTS.md](AGENTS.md).
+3. Run `uv run poe agent-start`.
+
+Use `uv run poe ...` task names as the public command interface.
+
 ## Tech Stack
 
 | Layer     | Technology                              |
@@ -25,7 +35,7 @@ cd my-project
 
 Copier records your answers in `.copier-answers.yml` so future template updates can be applied deliberately with `copier update`.
 
-If you delegate implementation to an AI coding agent, tell it to start from [00-START-HERE.md](00-START-HERE.md), [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md). Those files contain the source map, initialization workflow, skill routing, and required harness commands.
+If you delegate implementation to an AI coding agent, tell it to start from [00-START-HERE.md](00-START-HERE.md). The agent-facing execution path is [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md), then `uv run poe agent-start`.
 
 ### 2. Start developing
 

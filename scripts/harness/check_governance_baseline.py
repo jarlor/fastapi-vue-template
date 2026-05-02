@@ -42,6 +42,13 @@ REQUIRED_CI_POE_TASKS = (
     "harness",
     "template-smoke --full",
 )
+REQUIRED_README_AGENT_GUIDANCE = (
+    "## AI Agent Entry",
+    "If you are an AI coding agent working in this repository",
+    "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
+    "Read [AGENTS.md](AGENTS.md)",
+    "Run `uv run poe agent-start`",
+)
 PROHIBITED_AGENT_ADAPTERS = (
     "CLAUDE.md",
     ".claude",
@@ -179,6 +186,17 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
     return violations
 
 
+def find_missing_readme_agent_guidance(root: Path) -> list[Violation]:
+    """Return missing README first-screen guidance for agents that read README first."""
+    path = root / "README.md"
+    text = read_text(root, "README.md")
+    violations: list[Violation] = []
+    for expected in REQUIRED_README_AGENT_GUIDANCE:
+        if expected not in text:
+            violations.append(Violation(path=path, message=f"missing README agent entry guidance: {expected}"))
+    return violations
+
+
 def check_governance_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     """Check repository governance invariants."""
     root = root.resolve()
@@ -194,6 +212,7 @@ def check_governance_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     violations.extend(find_missing_evidence_entries(root, agents_text, "AGENTS.md"))
     violations.extend(find_missing_evidence_entries(root, pr_template_text, ".github/pull_request_template.md"))
     violations.extend(find_missing_agent_guidance(root, agents_text))
+    violations.extend(find_missing_readme_agent_guidance(root))
 
     return violations
 

@@ -57,6 +57,7 @@ def seed_repo(root: Path) -> None:
     agents_entries = "\n".join(
         [
             command_entries,
+            "00-START-HERE.md",
             "uv run poe agent-start",
             "git status --short --branch",
             "git switch -c feat/<short-task-name>",
@@ -91,7 +92,10 @@ jobs:
       - run: uv run poe template-smoke --full
 """,
     )
+    start_here_text = "Run `uv run poe agent-start`, then follow AGENTS.md. Exclude .venv/.\n"
     write_file(root, "AGENTS.md", agents_entries)
+    write_file(root, "00-START-HERE.md", start_here_text)
+    write_file(root, "00-START-HERE/README.md", start_here_text)
     write_file(root, ".github/pull_request_template.md", command_entries)
     write_file(
         root,
@@ -169,3 +173,11 @@ jobs:
         assert any(
             "missing agent workflow guidance: git switch -c feat/<short-task-name>" in message for message in messages
         )
+
+    def test_requires_agent_startup_sentinel(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / "00-START-HERE.md").unlink()
+
+        messages = messages_for(tmp_path)
+
+        assert any("00-START-HERE.md: missing agent startup sentinel" in message for message in messages)

@@ -12,7 +12,7 @@ Use this skill for feature, fix, refactor, and test work in a project generated 
 1. Start from `AGENTS.md` and run `uv run poe agent-start` before the first edit.
 2. Complete the init workflow if this is a fresh checkout or generated project. After the template baseline commit, create a focused feature branch before editing product code.
 3. Identify the touched surface: backend context, API contract, frontend API boundary, configuration, security, or tests.
-4. Read only the matching docs routed from `AGENTS.md`; do not inspect `.git/`, `.venv/`, `node_modules/`, caches, logs, or generated coverage files as source context.
+4. Read only the task-relevant repository files; do not inspect `.git/`, `.venv/`, `node_modules/`, caches, logs, or generated coverage files as source context.
 5. Keep changes inside the smallest bounded context or frontend module that owns the behavior.
 6. Run the narrow Poe check for the touched surface while editing.
 7. Run `uv run poe harness` before opening or updating a PR.

@@ -56,7 +56,6 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   ├── harness/             # implementation for poe harness tasks
 │   ├── render_copier_backend.py
 │   └── template_smoke.py
-├── docs/                    # architecture & development guides
 ├── .agents/skills/          # reusable agent workflows
 ├── harness_tests/           # tests for harness scripts and template tools
 ├── PROJECT_MAP.md           # short source map for agents and humans
@@ -99,7 +98,7 @@ Each domain module lives under `src/app_name/contexts/<context_name>/` with four
 
 Contexts **never** import from each other directly. Cross-context communication goes through the event bus or Ports.
 
-See `docs/module-development.md` for the full guide.
+Normal feature work follows [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md).
 
 ## Poe Tasks
 
@@ -153,7 +152,7 @@ Deployment profiles:
 | Production only | `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Release from `main`; deploy only when production vars/secrets exist |
 | Test and production | `TEST_DEPLOY_ENABLED=true`, `RELEASE_ENABLED=true`, optional `PROD_DEPLOY_ENABLED=true` | Deploy test from `dev`; release and optionally deploy production from `main` |
 
-See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.md).
+Agent-facing branch and PR rules live in [AGENTS.md](AGENTS.md) and [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md).
 
 ## Template Defaults
 
@@ -162,21 +161,9 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 - The template uses a single versioned API prefix: `/api/v1`.
 - `config.yaml` uses `cors.allow_origins` and `frontend.base_url`. Legacy keys are still accepted for compatibility, but new code should use the canonical names.
 
-## Documentation
+## Agent Workflows
 
-| Doc | Content |
-|---|---|
-| [module-development.md](docs/module-development.md) | Backend structure and bounded contexts |
-| [api-conventions.md](docs/api-conventions.md) | API envelope and contract gate |
-| [frontend-standards.md](docs/frontend-standards.md) | Frontend API boundary and generated types |
-| [security-standards.md](docs/security-standards.md) | Enforced security baseline |
-| [testing-guide.md](docs/testing-guide.md) | Test directory boundaries |
-| [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging |
-| [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix flow |
-| [ci-cd.md](docs/ci-cd.md) | GitHub Actions and deployment profiles |
-| [template-engine.md](docs/template-engine.md) | Copier generation and updates |
-
-AI coding agents should start with [00-START-HERE.md](00-START-HERE.md), [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md), then read only task-relevant docs or skills. Normal feature work uses [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md); template and harness work uses [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
+AI coding agents should start with [00-START-HERE.md](00-START-HERE.md), [PROJECT_MAP.md](PROJECT_MAP.md), then [AGENTS.md](AGENTS.md). Normal feature work uses [.agents/skills/project-development/SKILL.md](.agents/skills/project-development/SKILL.md); template and harness work uses [.agents/skills/template-maintenance/SKILL.md](.agents/skills/template-maintenance/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 
 ## Using as a GitHub Template
 

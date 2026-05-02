@@ -13,10 +13,10 @@ Notes:
 ## Contract / Interface Impact
 
 - [ ] No public API, context contract, config, or deployment behavior changed.
-- [ ] Public API changed and docs/tests were updated.
-- [ ] Backend boundaries or runtime contracts changed and relevant docs/tests/harness were updated.
-- [ ] Config or secret requirements changed and examples/docs were updated.
-- [ ] Deployment or CI behavior changed and docs were updated.
+- [ ] Public API changed and tests/contracts were updated.
+- [ ] Backend boundaries or runtime contracts changed and relevant tests/harness were updated.
+- [ ] Config or secret requirements changed and examples/instructions were updated.
+- [ ] Deployment or CI behavior changed and instructions/workflows were updated.
 
 ## Security Review
 

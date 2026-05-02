@@ -36,12 +36,10 @@ REQUIRED_EVIDENCE_COMMANDS = (
     "template-smoke",
 )
 REQUIRED_AGENT_GUIDANCE = (
-    "00-START-HERE.md",
     "PROJECT_MAP.md",
     "uv run poe agent-start",
     "uv run poe agent-handoff",
     "create a focused feature branch before changing product code",
-    "Do not hand work to an agent on the baseline branch.",
     "exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files",
 )
 REQUIRED_CI_POE_TASKS = (
@@ -194,6 +192,13 @@ def find_missing_agent_guidance(root: Path, agents_text: str) -> list[Violation]
         ):
             if expected not in project_map_text:
                 violations.append(Violation(path=project_map, message=f"missing source map guidance: {expected}"))
+
+    for skill in (
+        ".agents/skills/project-development/SKILL.md",
+        ".agents/skills/template-maintenance/SKILL.md",
+    ):
+        if not (root / skill).is_file():
+            violations.append(Violation(path=root / skill, message="missing agent workflow skill"))
 
     for expected in REQUIRED_AGENT_GUIDANCE:
         if expected not in agents_text:

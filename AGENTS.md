@@ -6,13 +6,13 @@ If you arrived here from `00-START-HERE.md` or `PROJECT_MAP.md`, keep using `uv 
 
 This is a production-oriented FastAPI + Vue project template for Vibe Coding and Harness Engineering.
 
-The repository-owned harness is the authority. Docs and skills guide work; Poe tasks, scripts, pre-commit, and CI decide whether a change is acceptable.
+The repository-owned harness is the authority. Skills and these instructions guide work; Poe tasks, scripts, pre-commit, and CI decide whether a change is acceptable.
 
 ## Default Workflow
 
 1. Read this file first. If you need a quick source map before editing, read `PROJECT_MAP.md`; do not infer source roots by sweeping the entire tree.
 2. Run `uv run poe agent-start` as the first repository command. It prints `git status --short --branch` and tells you whether to finish init or create a feature branch before editing.
-3. Read only the task-relevant docs listed below. Do not sweep all of `docs/` by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
+3. Read the task-relevant skill listed below. Do not sweep the repository by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
 4. Work on a focused feature branch before editing product code. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
 5. Run the smallest relevant Poe checks while editing.
 6. Run `uv run poe harness` before opening or updating a PR.
@@ -87,24 +87,15 @@ npm --prefix src/frontend run build
 npm --prefix src/frontend run test
 ```
 
-## Docs Routing
+## Skill Routing
 
-Use docs as task references, not as a mandatory reading set.
+Use skills as task references, not as a mandatory reading set.
 
 | Task | Read |
 |---|---|
 | Quick source map and ignored paths | `PROJECT_MAP.md` |
-| Template generation, Copier, generated project smoke | `.agents/skills/template-maintenance/SKILL.md` and `docs/template-engine.md` |
-| Harness policy, checks, PR evidence | `.agents/skills/template-maintenance/SKILL.md` |
-| Backend structure or new bounded context | `docs/module-development.md` |
-| API routes, response envelope, OpenAPI contract | `docs/api-conventions.md` |
-| Frontend API boundary or generated API types | `docs/frontend-standards.md` |
-| Config, env, logging | `docs/configuration-guide.md` |
-| Tests and `tests/` vs `harness_tests/` | `docs/testing-guide.md` |
-| CI, release, deploy workflows | `docs/ci-cd.md` and `docs/git-workflow.md` |
-| Security baseline | `docs/security-standards.md` |
-
-Historical template decisions live under `docs/adr/` in the template repository. Copier excludes them from generated projects.
+| Normal generated-project feature work | `.agents/skills/project-development/SKILL.md` |
+| Template generation, Copier, generated project smoke, harness, CI, or agent instructions | `.agents/skills/template-maintenance/SKILL.md` |
 
 ## PR Expectations
 

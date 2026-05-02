@@ -16,6 +16,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 IGNORED_CONTEXTS = {"_template"}
+IGNORED_CONTEXT_DIRS = {"__pycache__"}
 LAYER_NAMES = {"domain", "application", "infrastructure", "interface"}
 LAYER_IMPORT_RULES = {
     "domain": {"domain"},
@@ -266,7 +267,11 @@ def check_context_scaffolds(contexts_root: Path) -> list[Violation]:
 
     violations: list[Violation] = []
     for context_path in sorted(contexts_root.iterdir()):
-        if not context_path.is_dir() or context_path.name in IGNORED_CONTEXTS:
+        if (
+            not context_path.is_dir()
+            or context_path.name in IGNORED_CONTEXTS
+            or context_path.name in IGNORED_CONTEXT_DIRS
+        ):
             continue
 
         python_files = [path for path in context_path.rglob("*.py") if path.is_file()]

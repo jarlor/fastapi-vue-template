@@ -54,10 +54,12 @@ lint = "ruff check src/app_name scripts tests"
 fmt = "ruff format src/app_name scripts tests"
 test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
 architecture = "python scripts/check_context_boundaries.py"
+security = "python scripts/check_security_baseline.py"
 template-smoke = "python scripts/template_smoke.py"
 harness = [
     { cmd = "uv run poe lint" },
     { cmd = "uv run poe architecture" },
+    { cmd = "uv run poe security" },
     { cmd = "uv run poe test" },
     { cmd = "npm --prefix src/frontend run build" },
     { cmd = "npm --prefix src/frontend run test" },

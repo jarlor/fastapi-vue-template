@@ -36,6 +36,7 @@ Run these commands from the repository root:
 
 ```bash
 uv run poe lint
+uv run poe security
 uv run poe test
 npm --prefix src/frontend run build
 npm --prefix src/frontend run test

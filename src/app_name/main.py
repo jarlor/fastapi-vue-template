@@ -22,12 +22,11 @@ __version__ = "0.1.0"
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan: startup and shutdown logic."""
-    from app_name.config import get_settings
     from app_name.core.logging import setup_logging
     from app_name.core.service_factory import build_registry
 
     # 1. Load settings
-    settings = get_settings()
+    settings: Settings = app.state.settings
 
     # 2. Configure logging
     setup_logging(settings.logging)
@@ -60,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version=__version__,
         lifespan=lifespan,
     )
+    app.state.settings = settings
 
     # --- Exception handlers ---
     from app_name.shared.exceptions.handlers import register_exception_handlers

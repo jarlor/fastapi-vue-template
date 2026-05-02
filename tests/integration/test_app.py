@@ -5,6 +5,7 @@ from __future__ import annotations
 from httpx import AsyncClient
 
 from app_name.api.v1.router import router as v1_router
+from app_name.main import create_app
 
 
 class TestHealthEndpoints:
@@ -29,6 +30,14 @@ class TestHealthEndpoints:
         assert response.json()["success"] is True
         assert response.json()["message"] == "OK"
         assert response.json()["data"]["status"] == "ok"
+
+
+class TestApplicationLifespan:
+    async def test_lifespan_uses_injected_settings(self, test_settings) -> None:
+        app = create_app(settings=test_settings)
+
+        async with app.router.lifespan_context(app):
+            assert app.state.registry.settings is test_settings
 
 
 def test_v1_router_uses_single_prefix() -> None:

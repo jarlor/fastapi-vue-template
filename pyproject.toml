@@ -53,6 +53,12 @@ frontend = { cmd = "npm run dev", cwd = "src/frontend" }
 lint = "ruff check src/app_name"
 fmt = "ruff format src/app_name"
 test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
+harness = [
+    { cmd = "uv run poe lint" },
+    { cmd = "uv run poe test" },
+    { cmd = "npm --prefix src/frontend run build" },
+    { cmd = "npm --prefix src/frontend run test" },
+]
 
 # ---------------------------------------------------------------------------
 # Ruff

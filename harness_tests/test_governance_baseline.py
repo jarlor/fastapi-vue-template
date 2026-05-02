@@ -99,6 +99,19 @@ jobs:
     write_file(root, "00-START-HERE/README.md", start_here_text)
     write_file(
         root,
+        "README.md",
+        "\n".join(
+            [
+                "## AI Agent Entry",
+                "If you are an AI coding agent working in this repository",
+                "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
+                "Read [AGENTS.md](AGENTS.md)",
+                "Run `uv run poe agent-start`",
+            ]
+        ),
+    )
+    write_file(
+        root,
         "PROJECT_MAP.md",
         "\n".join(
             [
@@ -207,3 +220,13 @@ jobs:
         messages = messages_for(tmp_path)
 
         assert any("PROJECT_MAP.md: missing repository source map" in message for message in messages)
+
+    def test_requires_readme_agent_entry(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / "README.md").write_text("# Project\n")
+
+        messages = messages_for(tmp_path)
+
+        assert any(
+            "README.md: missing README agent entry guidance: ## AI Agent Entry" in message for message in messages
+        )

@@ -43,8 +43,16 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
     )
     write(tmp_path / "src" / "frontend" / "src" / "api" / "index.ts", 'baseURL: "/api/v1"\n')
     write(
+        tmp_path / "contracts" / "openapi.json",
+        '{"info":{"title":"app_name"},"paths":{"/api/v1/health":{"get":{"operationId":"health_api_v1_health_get"}}}}\n',
+    )
+    write(
+        tmp_path / "src" / "frontend" / "src" / "api" / "generated" / "openapi.ts",
+        '"/api/v1/health": { get: operations["health_api_v1_health_get"] };\n',
+    )
+    write(
         tmp_path / "pyproject.toml",
-        '\n'.join(
+        "\n".join(
             [
                 'name = "app_name"',
                 'packages = ["src/app_name"]',
@@ -92,6 +100,13 @@ def test_render_backend_moves_package_and_updates_backend_references(tmp_path: P
     assert 'APP_FRONTEND_PORT || "8016"' in vite_text
     assert 'APP_BACKEND_URL || "http://127.0.0.1:8765"' in vite_text
     assert 'baseURL: "/api/smoke"' in (tmp_path / "src" / "frontend" / "src" / "api" / "index.ts").read_text()
+    openapi_text = (tmp_path / "contracts" / "openapi.json").read_text()
+    assert '"/api/smoke/health"' in openapi_text
+    assert '"title":"sample-project"' in openapi_text
+    assert (
+        "health_api_smoke_health_get"
+        in (tmp_path / "src" / "frontend" / "src" / "api" / "generated" / "openapi.ts").read_text()
+    )
 
     conftest_text = (tmp_path / "tests" / "conftest.py").read_text()
     assert "from sample_project.config import Settings" in conftest_text

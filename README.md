@@ -41,7 +41,7 @@ uv run poe frontend                # start Vite dev server on port 8006
 ├── .env.example             # secret template
 ├── pyproject.toml           # Python project & poe tasks
 ├── scripts/
-│   ├── check_context_boundaries.py
+│   ├── harness/             # implementation for poe harness tasks
 │   ├── render_copier_backend.py
 │   └── template_smoke.py
 ├── docs/                    # architecture & development guides
@@ -94,6 +94,9 @@ All tasks run via `uv run poe <task>`:
 | `poe frontend`    | Start Vite dev server (port 8006)        |
 | `poe lint`        | Run Ruff linter                          |
 | `poe fmt`         | Run Ruff formatter                       |
+| `poe architecture` | Check bounded-context boundaries        |
+| `poe security`    | Run deterministic security baseline      |
+| `poe api-contracts` | Check OpenAPI and frontend type drift   |
 | `poe test`        | Run pytest with coverage                 |
 | `poe harness`     | Run the repository quality gate          |
 

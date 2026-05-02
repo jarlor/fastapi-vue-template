@@ -9,15 +9,15 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app_name.main import __version__
-from app_name.shared.schemas.response import APIResponse
+from app_name.shared.schemas.response import APIResponse, HealthStatus
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
 
 
-@router.get("/health")
-async def health() -> dict:
+@router.get("/health", response_model=APIResponse[HealthStatus])
+async def health() -> APIResponse[HealthStatus]:
     """Versioned health check endpoint."""
-    return APIResponse.ok(data={"status": "ok", "version": __version__}).model_dump()
+    return APIResponse.ok(data=HealthStatus(status="ok", version=__version__))
 
 
 # Include context-specific routers here:

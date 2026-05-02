@@ -1,11 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
+import type { components } from "./generated/openapi";
 
-export interface ApiResponse<T> {
-  code: number;
-  success: boolean;
-  data: T | null;
-  message: string | null;
-}
+export type HealthResponse = components["schemas"]["APIResponse_HealthStatus_"];
 
 const api: AxiosInstance = axios.create({
   baseURL: "/api/v1",
@@ -34,7 +30,7 @@ attachErrorLogging(api);
 // API functions
 // ---------------------------------------------------------------------------
 export function getHealth() {
-  return api.get<ApiResponse<{ status: string; version: string }>>("/health");
+  return api.get<HealthResponse>("/health");
 }
 
 // Add more endpoint functions here

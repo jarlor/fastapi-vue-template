@@ -62,6 +62,13 @@ def validate_api_prefix(api_prefix: str) -> None:
         raise ValueError(msg)
 
 
+def operation_id_prefix(api_prefix: str) -> str:
+    """Return the FastAPI operationId path segment prefix for an API prefix."""
+    if api_prefix == "/":
+        return ""
+    return api_prefix.strip("/").replace("/", "_").replace("-", "_")
+
+
 def validate_port(port: int, *, name: str) -> None:
     """Validate a generated development port."""
     if port < 1024 or port > 65535:
@@ -81,6 +88,8 @@ def render_text(
 ) -> str:
     """Render project references without renaming semantic app_name fields."""
     backend_base_url = f"http://127.0.0.1:{backend_port}"
+    api_operation_prefix = operation_id_prefix(api_prefix)
+    health_operation_id = f"health_{api_operation_prefix}_health_get" if api_operation_prefix else "health_health_get"
     replacements = {
         f"src/{TEMPLATE_PACKAGE}": f"src/{package_name}",
         f"from {TEMPLATE_PACKAGE}": f"from {package_name}",
@@ -89,6 +98,8 @@ def render_text(
         f"{TEMPLATE_PACKAGE}.main:create_app": f"{package_name}.main:create_app",
         'name = "app_name"': f'name = "{project_name}"',
         'title="app_name"': f'title="{project_name}"',
+        '"title": "app_name"': f'"title": "{project_name}"',
+        '"title":"app_name"': f'"title":"{project_name}"',
         'logger.info("Starting app_name v{}"': f'logger.info("Starting {project_name} v{{}}"',
         'app_name: str = "app_name"': 'app_name: str = "app_name"',
         'app_name="app_name_test"': f'app_name="{package_name}_test"',
@@ -101,6 +112,8 @@ def render_text(
         '"port": 8665': f'"port": {backend_port}',
         "8006": str(frontend_port),
         'baseURL: "/api/v1"': f'baseURL: "{api_prefix}"',
+        '"/api/v1/health"': f'"{api_prefix}/health"',
+        "health_api_v1_health_get": health_operation_id,
         '"/api/v1"': f'"{api_prefix}"',
         "/api/v1": api_prefix,
     }

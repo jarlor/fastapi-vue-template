@@ -13,7 +13,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 IGNORED_CONTEXTS = {"_template"}
 LAYER_NAMES = {"domain", "application", "infrastructure", "interface"}
@@ -114,8 +114,7 @@ def imported_modules(path: Path) -> list[ImportReference]:
         if isinstance(node, ast.ImportFrom) and node.module:
             imports.append(ImportReference(node.module, node.lineno, node.level))
             imports.extend(
-                ImportReference(f"{node.module}.{alias.name}", node.lineno, node.level)
-                for alias in node.names
+                ImportReference(f"{node.module}.{alias.name}", node.lineno, node.level) for alias in node.names
             )
 
     return imports
@@ -187,10 +186,7 @@ def check_file(context_file: ContextFile) -> list[Violation]:
         if imported_ctx != context_file.context:
             add_violation(
                 import_ref.line,
-                (
-                    f"context '{context_file.context}' must not import context "
-                    f"'{imported_ctx}' ({module})"
-                ),
+                (f"context '{context_file.context}' must not import context '{imported_ctx}' ({module})"),
             )
             continue
 
@@ -206,10 +202,7 @@ def check_file(context_file: ContextFile) -> list[Violation]:
 
         add_violation(
             import_ref.line,
-            (
-                f"layer '{context_file.layer}' must not import layer "
-                f"'{imported_layer}' ({module})"
-            ),
+            (f"layer '{context_file.layer}' must not import layer '{imported_layer}' ({module})"),
         )
 
     return violations

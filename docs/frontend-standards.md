@@ -27,6 +27,8 @@ src/frontend/src/
 - **domain/**: Business rules and calculations with no framework dependency. Testable in isolation.
 - **types/**: Shared TypeScript interfaces and type aliases. No runtime code.
 
+Generated OpenAPI types live under `src/frontend/src/api/generated/`. Do not edit them by hand; refresh them from the backend contract with `uv run poe api-contracts-write`.
+
 ## Component Rules
 
 ### Script Setup Only
@@ -112,16 +114,22 @@ export const useAuthStore = defineStore('auth', () => {
 
 All API calls go through `src/api/index.ts` (or feature-specific files in `src/api/`). Components never import or call axios directly.
 
+API functions should use generated OpenAPI schema types from `src/api/generated/openapi.ts` for request and response contracts when those schemas exist. The repository harness checks drift with `uv run poe api-contracts`.
+
 ```typescript
 // api/models.ts
-import api, { type ApiResponse } from './index'
+import api from './index'
+import type { components } from './generated/openapi'
+
+type Model = components['schemas']['Model']
+type ModelListResponse = components['schemas']['APIResponse_ModelList_']
 
 export function listModels(params: ModelListParams) {
-  return api.get<ApiResponse<PaginatedResponse<Model>>>('/models', { params })
+  return api.get<ModelListResponse>('/models', { params })
 }
 
 export function updateModelStatus(id: string, status: string) {
-  return api.patch<ApiResponse<Model>>(`/models/${id}/status`, { status })
+  return api.patch<Model>(`/models/${id}/status`, { status })
 }
 ```
 

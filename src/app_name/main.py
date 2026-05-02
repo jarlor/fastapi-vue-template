@@ -84,10 +84,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(v1_router)
 
     # --- Health check ---
-    from app_name.shared.schemas.response import APIResponse
+    from app_name.shared.schemas.response import APIResponse, HealthStatus
 
-    @app.get("/health", tags=["health"])
-    async def health() -> dict:
-        return APIResponse.ok(data={"status": "ok", "version": __version__}).model_dump()
+    @app.get("/health", tags=["health"], response_model=APIResponse[HealthStatus])
+    async def health() -> APIResponse[HealthStatus]:
+        return APIResponse.ok(data=HealthStatus(status="ok", version=__version__))
 
     return app

@@ -70,7 +70,8 @@ This smoke test is the gate that makes template generation a repository-owned gu
 Current gate mode:
 
 - `uv run poe template-smoke` runs backend generated-project checks.
-- `uv run poe template-smoke --full` also installs generated frontend dependencies and runs frontend build/test.
+- `uv run poe template-smoke` installs generated frontend dependencies because the generated API contract check uses frontend type generation.
+- `uv run poe template-smoke --full` also runs generated frontend build/test.
 - CI runs full template smoke as a report-only job while runtime and flake rate are monitored.
 - Do not add it to `uv run poe harness` until it is stable enough to be a required local gate.
 

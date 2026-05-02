@@ -12,6 +12,12 @@ import tempfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SMOKE_PROJECT_NAME = "sample-project"
+SMOKE_PACKAGE_NAME = "sample_project"
+SMOKE_FRONTEND_NAME = "sample-frontend"
+SMOKE_BACKEND_PORT = 8765
+SMOKE_FRONTEND_PORT = 8016
+SMOKE_API_PREFIX = "/api/smoke"
 SENTINELS = (
     "__PROJECT_NAME__",
     "__PACKAGE_NAME__",
@@ -75,6 +81,39 @@ def build_env() -> dict[str, str]:
     return env
 
 
+def assert_contains(path: Path, expected: str) -> None:
+    """Fail if a generated text file does not contain expected content."""
+    content = path.read_text()
+    if expected not in content:
+        msg = f"{path} does not contain expected text: {expected}"
+        raise RuntimeError(msg)
+
+
+def assert_generated_variables(generated: Path) -> None:
+    """Assert that Copier variables affected concrete generated files."""
+    assert_contains(generated / ".copier-answers.yml", f"project_name: {SMOKE_PROJECT_NAME}")
+    assert_contains(generated / ".copier-answers.yml", f"package_name: {SMOKE_PACKAGE_NAME}")
+    assert_contains(generated / ".copier-answers.yml", f"frontend_name: {SMOKE_FRONTEND_NAME}")
+    assert_contains(generated / ".copier-answers.yml", f"backend_port: {SMOKE_BACKEND_PORT}")
+    assert_contains(generated / ".copier-answers.yml", f"frontend_port: {SMOKE_FRONTEND_PORT}")
+    assert_contains(generated / ".copier-answers.yml", f"api_prefix: {SMOKE_API_PREFIX}")
+
+    assert_contains(generated / "pyproject.toml", f'name = "{SMOKE_PROJECT_NAME}"')
+    assert_contains(generated / "pyproject.toml", f"src/{SMOKE_PACKAGE_NAME}")
+    assert_contains(generated / "config.yaml", f"port: {SMOKE_BACKEND_PORT}")
+    assert_contains(generated / "config.yaml", f"http://localhost:{SMOKE_FRONTEND_PORT}")
+    assert_contains(generated / "src" / "frontend" / "package.json", f'"name": "{SMOKE_FRONTEND_NAME}"')
+    assert_contains(
+        generated / "src" / "frontend" / "vite.config.ts",
+        f'APP_FRONTEND_PORT || "{SMOKE_FRONTEND_PORT}"',
+    )
+    assert_contains(
+        generated / "src" / "frontend" / "vite.config.ts",
+        f'APP_BACKEND_URL || "http://127.0.0.1:{SMOKE_BACKEND_PORT}"',
+    )
+    assert_contains(generated / "src" / "frontend" / "src" / "api" / "index.ts", f'baseURL: "{SMOKE_API_PREFIX}"')
+
+
 def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
     """Generate a project and run its core checks.
 
@@ -82,7 +121,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
     init.sh broad replacement flow.
     """
     tmp = Path(tempfile.mkdtemp(prefix="fastapi-vue-template-"))
-    generated = tmp / "sample-project"
+    generated = tmp / SMOKE_PROJECT_NAME
     env = build_env()
 
     try:
@@ -96,11 +135,17 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
                 "--vcs-ref=HEAD",
                 "--defaults",
                 "--data",
-                "project_name=sample-project",
+                f"project_name={SMOKE_PROJECT_NAME}",
                 "--data",
-                "package_name=sample_project",
+                f"package_name={SMOKE_PACKAGE_NAME}",
                 "--data",
-                "frontend_name=sample-project",
+                f"frontend_name={SMOKE_FRONTEND_NAME}",
+                "--data",
+                f"backend_port={SMOKE_BACKEND_PORT}",
+                "--data",
+                f"frontend_port={SMOKE_FRONTEND_PORT}",
+                "--data",
+                f"api_prefix={SMOKE_API_PREFIX}",
                 str(PROJECT_ROOT),
                 str(generated),
             ],
@@ -113,13 +158,14 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
             msg = "Copier answers file was not generated"
             raise RuntimeError(msg)
 
-        generated_package = generated / "src" / "sample_project"
+        generated_package = generated / "src" / SMOKE_PACKAGE_NAME
         if not generated_package.is_dir():
             msg = "Generated backend package directory was not rendered"
             raise RuntimeError(msg)
         if (generated / "src" / "app_name").exists():
             msg = "Template backend package directory survived generation"
             raise RuntimeError(msg)
+        assert_generated_variables(generated)
 
         sentinel_matches = scan_for_sentinels(generated)
         if sentinel_matches:
@@ -129,6 +175,7 @@ def run_smoke(*, keep: bool = False, full: bool = False) -> Path:
         run(["uv", "run", "poe", "architecture"], cwd=generated, env=env)
         run(["uv", "run", "poe", "test"], cwd=generated, env=env)
         if full:
+            run(["npm", "--prefix", "src/frontend", "ci", "--no-audit", "--no-fund"], cwd=generated, env=env)
             run(["npm", "--prefix", "src/frontend", "run", "build"], cwd=generated, env=env)
             run(["npm", "--prefix", "src/frontend", "run", "test"], cwd=generated, env=env)
 

@@ -61,6 +61,14 @@ _tasks:
       - "{{ project_name }}"
       - --package-name
       - "{{ package_name }}"
+      - --frontend-name
+      - "{{ frontend_name }}"
+      - --backend-port
+      - "{{ backend_port }}"
+      - --frontend-port
+      - "{{ frontend_port }}"
+      - --api-prefix
+      - "{{ api_prefix }}"
     when: "{{ _copier_operation == 'copy' }}"
 _exclude:
   - copier.yml

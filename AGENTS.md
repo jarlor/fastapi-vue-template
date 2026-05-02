@@ -30,10 +30,11 @@ uv run pre-commit install
 uv run poe harness
 git add .
 git commit -m "chore: initialize from template"
+uv run poe agent-handoff-clean
 git switch -c feat/<short-task-name>
 ```
 
-Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. After the baseline commit exists, create a focused feature branch before changing product code. Do not continue implementation work on the baseline branch.
+Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. Run `uv run poe agent-handoff-clean` only after the baseline commit; it removes rebuildable dependency trees such as `.venv/`, `src/frontend/node_modules/`, and `src/frontend/dist/` so agent context scans start from source files. After the baseline commit exists, create a focused feature branch before changing product code. Do not continue implementation work on the baseline branch.
 
 Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
 
@@ -72,6 +73,7 @@ Targeted checks:
 
 ```bash
 uv run poe agent-start
+uv run poe agent-handoff-clean
 uv run poe lint
 uv run poe harness-test
 uv run poe governance-harness

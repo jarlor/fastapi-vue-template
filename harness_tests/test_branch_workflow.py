@@ -28,6 +28,7 @@ def load_checker_module() -> ModuleType:
 checker = load_checker_module()
 check_branch_workflow = checker.check_branch_workflow
 agent_start_message = checker.agent_start_message
+clean_agent_handoff = checker.clean_agent_handoff
 
 
 def git(root: Path, *args: str) -> None:
@@ -116,3 +117,21 @@ def test_ignores_non_product_local_files_on_baseline_branch(tmp_path: Path) -> N
     (tmp_path / "scratch.txt").write_text("local note\n")
 
     assert check_branch_workflow(tmp_path) == []
+
+
+def test_agent_handoff_clean_removes_rebuildable_dependency_trees(tmp_path: Path) -> None:
+    for relative in (".venv/lib/site.py", "src/frontend/node_modules/pkg/index.js", "src/frontend/dist/index.html"):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("generated\n")
+    source_file = tmp_path / "src" / "frontend" / "src" / "main.ts"
+    source_file.parent.mkdir(parents=True, exist_ok=True)
+    source_file.write_text("source\n")
+
+    removed = clean_agent_handoff(tmp_path)
+
+    assert removed == [".venv", "src/frontend/node_modules", "src/frontend/dist"]
+    assert not (tmp_path / ".venv").exists()
+    assert not (tmp_path / "src" / "frontend" / "node_modules").exists()
+    assert not (tmp_path / "src" / "frontend" / "dist").exists()
+    assert source_file.exists()

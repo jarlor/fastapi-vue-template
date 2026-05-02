@@ -51,7 +51,12 @@ def seed_repo(root: Path) -> None:
         "runtime-harness",
         "test",
     )
+    non_aggregate_tasks = (
+        "agent-start",
+        "agent-handoff-clean",
+    )
     poe_entries = "\n".join(f'{task} = "echo {task}"' for task in required_tasks)
+    non_aggregate_entries = "\n".join(f'{task} = "echo {task}"' for task in non_aggregate_tasks)
     harness_entries = "\n".join(f'    {{ cmd = "uv run poe {task}" }},' for task in required_tasks)
     command_entries = "\n".join([*(f"uv run poe {task}" for task in required_tasks), "uv run poe template-smoke"])
     agents_entries = "\n".join(
@@ -60,6 +65,7 @@ def seed_repo(root: Path) -> None:
             "00-START-HERE.md",
             "PROJECT_MAP.md",
             "uv run poe agent-start",
+            "uv run poe agent-handoff-clean",
             "git status --short --branch",
             "git switch -c feat/<short-task-name>",
             "create a focused feature branch before changing product code",
@@ -74,6 +80,7 @@ def seed_repo(root: Path) -> None:
         f"""
 [tool.poe.tasks]
 {poe_entries}
+{non_aggregate_entries}
 template-smoke = "python scripts/template_smoke.py"
 harness = [
 {harness_entries}
@@ -93,7 +100,10 @@ jobs:
       - run: uv run poe template-smoke --full
 """,
     )
-    start_here_text = "Run `uv run poe agent-start`, then read PROJECT_MAP.md and follow AGENTS.md. Exclude .venv/.\n"
+    start_here_text = (
+        "Run `uv run poe agent-start`, then read PROJECT_MAP.md and follow AGENTS.md. "
+        "Use `uv run poe agent-handoff-clean` after baseline commit. Exclude .venv/.\n"
+    )
     write_file(root, "AGENTS.md", agents_entries)
     write_file(root, "00-START-HERE.md", start_here_text)
     write_file(root, "00-START-HERE/README.md", start_here_text)
@@ -107,6 +117,7 @@ jobs:
                 "Read [PROJECT_MAP.md](PROJECT_MAP.md)",
                 "Read [AGENTS.md](AGENTS.md)",
                 "Run `uv run poe agent-start`",
+                "uv run poe agent-handoff-clean",
             ]
         ),
     )
@@ -116,6 +127,7 @@ jobs:
         "\n".join(
             [
                 "uv run poe agent-start",
+                "uv run poe agent-handoff-clean",
                 "AGENTS.md",
                 "src/app_name/",
                 "src/frontend/",

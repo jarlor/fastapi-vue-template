@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,11 @@ PRODUCT_PATH_PREFIXES = (
     "src/",
     "tests/",
     "uv.lock",
+)
+CLEANUP_PATHS = (
+    ".venv",
+    "src/frontend/node_modules",
+    "src/frontend/dist",
 )
 
 
@@ -138,6 +144,17 @@ def agent_start_message(root: Path = PROJECT_ROOT) -> tuple[int, str]:
     return (0, f"{status}\nAgent startup gate passed. Continue on this focused branch.")
 
 
+def clean_agent_handoff(root: Path = PROJECT_ROOT) -> list[str]:
+    """Remove rebuildable dependency trees before handing a repo to an agent."""
+    removed: list[str] = []
+    for relative in CLEANUP_PATHS:
+        path = root / relative
+        if path.exists():
+            shutil.rmtree(path)
+            removed.append(relative)
+    return removed
+
+
 def main() -> int:
     """CLI entry point."""
     if "--agent-start" in sys.argv:
@@ -145,6 +162,16 @@ def main() -> int:
         stream = sys.stderr if exit_code else sys.stdout
         print(message, file=stream)
         return exit_code
+
+    if "--agent-handoff-clean" in sys.argv:
+        removed = clean_agent_handoff()
+        if removed:
+            print("Removed rebuildable agent-handoff paths:")
+            for path in removed:
+                print(f"- {path}")
+        else:
+            print("No rebuildable agent-handoff paths found.")
+        return 0
 
     violations = check_branch_workflow()
     if violations:

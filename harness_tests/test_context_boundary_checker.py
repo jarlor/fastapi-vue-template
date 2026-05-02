@@ -105,7 +105,7 @@ class TestContextBoundaryChecker:
 
     def test_allows_external_io_client_in_infrastructure_gateway(self, tmp_path: Path) -> None:
         contexts_root = tmp_path / "contexts"
-        write_context_file(contexts_root, "chat/infrastructure/gateways/openai_gateway.py", "import httpx\n")
+        write_context_file(contexts_root, "chat/infrastructure/gateways/provider_gateway.py", "import httpx\n")
 
         violations = check_test_contexts(contexts_root)
 

@@ -80,6 +80,5 @@ _exclude:
   - .DS_Store
   - src/frontend/node_modules
   - src/frontend/dist
-  - tests/unit/test_init_script.py
   - "**/__pycache__"
   - "**/*.pyc"

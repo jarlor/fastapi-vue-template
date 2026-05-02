@@ -48,7 +48,6 @@ default-groups = ["dev"]
 # Poe Tasks
 # ---------------------------------------------------------------------------
 [tool.poe.tasks]
-init = { cmd = "bash scripts/init.sh" }
 api = "python -m app_name.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
 lint = "ruff check src/app_name scripts tests"

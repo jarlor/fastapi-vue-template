@@ -52,7 +52,7 @@ api = "python -m app_name.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
 lint = "ruff check src/app_name scripts tests harness_tests"
 fmt = "ruff format src/app_name scripts tests harness_tests"
-test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing"
+test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing --cov-fail-under=80"
 harness-test = "python -m pytest harness_tests/ -v"
 architecture = "python scripts/harness/check_context_boundaries.py"
 security = "python scripts/harness/check_security_baseline.py"

@@ -22,11 +22,13 @@ That flow works for the current skeleton, but it is not a strong enough foundati
 Copier becomes the canonical project generation and update path:
 
 ```bash
-copier copy <template-url> my-project
+copier copy --trust <template-url> my-project
 copier update
 ```
 
 The generated project keeps a Copier answers file so future template updates can be applied deliberately.
+
+`--trust` is required because this template runs a repository-owned Copier task during `copy` to render dual-use backend package paths while keeping the template repository itself runnable.
 
 ## Template Variables
 
@@ -136,3 +138,5 @@ Use small PRs with explicit scope:
    - Delete it only after docs, tests, and generated-project checks no longer depend on it.
 
 Copier owns template rendering and generated-project updateability. Harness scripts, Poe tasks, CI, and project skills own deterministic verification and workflow policy.
+
+The source repository is also a working project. Avoid converting shared source files directly into non-runnable Jinja when a Copier task or narrow template file can preserve both roles. Any Copier task must be repository-owned, deterministic, and covered by `poe template-smoke`.

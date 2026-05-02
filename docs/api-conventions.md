@@ -1,196 +1,33 @@
 # API Conventions
 
-## Contract Harness
+This document exists for changes that touch FastAPI routes, response models, or committed API contracts.
 
-The committed API contract artifacts are:
+## Contract Gate
+
+Committed contract artifacts:
 
 - `contracts/openapi.json`
 - `src/frontend/src/api/generated/openapi.ts`
 
-Refresh them after changing routes, response models, request models, or API metadata:
+Refresh after API changes:
 
 ```bash
 uv run poe api-contracts-write
 ```
 
-Check for drift before opening or updating a PR:
+Check drift:
 
 ```bash
 uv run poe api-contracts
 ```
 
-`uv run poe harness` runs the same drift check. Do not edit generated contract artifacts by hand.
+The aggregate gate `uv run poe harness` runs the same drift check. Do not edit generated contract artifacts by hand.
 
-## URL Structure
+## Default API Shape
 
-```
-/api/v1/{context}/{resource}
-```
+- Versioned API prefix: `/api/v1`
+- Root health endpoint: `/health`
+- Versioned health endpoint: `/api/v1/health`
+- Successful and error responses use the shared `APIResponse` envelope: `{ code, success, data, message }`.
 
-| Segment | Values | Description |
-|---------|--------|-------------|
-| `v1` | Version prefix | Increment for breaking changes |
-| `context` | Bounded context name | e.g., `auth`, `models`, `pipeline` |
-| `resource` | Plural noun | e.g., `users`, `tokens`, `tasks` |
-
-Examples:
-- `GET /api/v1/models` -- list models
-- `POST /api/v1/pipeline/tasks` -- create task
-
-## HTTP Methods
-
-| Method | Purpose | Idempotent | Request Body |
-|--------|---------|------------|--------------|
-| GET | Read resource(s) | Yes | No |
-| POST | Create resource or trigger action | No | Yes |
-| PATCH | Partial update | Yes | Yes (partial) |
-| DELETE | Remove resource | Yes | No |
-
-Use POST for actions that do not map to CRUD (e.g., `POST /api/v1/pipeline/run`).
-
-## Status Codes
-
-| Code | Meaning | When to Use |
-|------|---------|-------------|
-| 200 | OK | Successful GET, PATCH, or action POST |
-| 201 | Created | Successful resource creation POST |
-| 204 | No Content | Successful DELETE |
-| 400 | Bad Request | Malformed request syntax |
-| 401 | Unauthorized | Missing or invalid auth token |
-| 403 | Forbidden | Valid token but insufficient permissions |
-| 404 | Not Found | Resource does not exist |
-| 422 | Validation Error | Request body fails Pydantic validation |
-| 500 | Internal Server Error | Unhandled server error |
-
-## Response Format
-
-### Success (single resource)
-
-```json
-{
-  "code": 0,
-  "success": true,
-  "data": { "id": "abc123", "name": "Example" },
-  "message": "OK"
-}
-```
-
-### Success (paginated list)
-
-```json
-{
-  "code": 0,
-  "success": true,
-  "data": [
-    { "id": "abc123", "name": "Example" }
-  ],
-  "total": 100,
-  "page": 1,
-  "limit": 20
-}
-```
-
-### Error
-
-```json
-{
-  "code": 10042,
-  "success": false,
-  "data": null,
-  "message": "Resource not found"
-}
-```
-
-For validation errors (422), the project returns the same envelope:
-
-```json
-{
-  "code": 10000,
-  "success": false,
-  "data": null,
-  "message": "body -> email: Field required"
-}
-```
-
-## Authentication
-
-- Primary: `Authorization: Bearer <token>` header.
-- WebSocket fallback: `?token=<token>` query parameter (headers cannot be set on WebSocket connections from browsers).
-- Tokens are opaque strings. The server validates them on every request.
-
-## Pagination
-
-Query parameters:
-
-| Parameter | Type | Default | Max | Description |
-|-----------|------|---------|-----|-------------|
-| `page` | int | 1 | -- | 1-based page number |
-| `limit` | int | 20 | 100 | Items per page |
-
-The response includes `total`, `page`, and `limit` fields alongside `data`.
-
-## Filtering
-
-Use query parameters matching field names:
-
-```
-GET /api/v1/models?status=approved&category=nlp
-```
-
-For date ranges, use `_from` and `_to` suffixes:
-
-```
-GET /api/v1/pipeline/tasks?created_from=2024-01-01&created_to=2024-01-31
-```
-
-## Sorting
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `sort_by` | string | `created_at` | Field name to sort by |
-| `sort_order` | string | `desc` | `asc` or `desc` |
-
-```
-GET /api/v1/models?sort_by=name&sort_order=asc
-```
-
-## Versioning
-
-Version is embedded in the URL path: `/v1`, `/v2`, etc. Increment the version only for breaking changes. Non-breaking additions (new optional fields, new endpoints) do not require a version bump.
-
-## Router Organization
-
-Each bounded context provides its own `FastAPI APIRouter`. Routers are mounted in the application factory:
-
-```python
-# Versioned routes
-app.include_router(models_router, prefix="/api/v1/models", tags=["models"])
-app.include_router(pipeline_router, prefix="/api/v1/pipeline", tags=["pipeline"])
-```
-
-## Route Definition Rules
-
-### Static routes before catch-alls
-
-Static routes must be defined before parameterized `/{id}` routes to prevent shadowing:
-
-```python
-# Correct order
-@router.get("/stats")
-async def get_stats(): ...
-
-@router.get("/{model_id}")
-async def get_model(model_id: str): ...
-```
-
-### No trailing slashes
-
-Do not include trailing slashes in route definitions. Trailing slashes cause 307 redirects that break some proxy configurations and API clients.
-
-```python
-# Correct
-@router.get("/models")
-
-# Wrong
-@router.get("/models/")
-```
+Use context-owned routers for feature APIs and mount them under the versioned prefix. Keep route handlers thin; application services own business behavior.

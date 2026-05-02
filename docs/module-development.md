@@ -1,6 +1,19 @@
-# Module Development Guide
+# Module Development
 
-How to create a new bounded context in the project.
+This document exists for backend architecture changes and new bounded contexts.
+
+## Runtime Shape
+
+- `create_app()` is the FastAPI app factory.
+- Shared runtime state is built during lifespan and stored on `app.state`.
+- Route handlers stay thin; application services own behavior.
+- Configuration comes from environment variables, `.env`, and `config.yaml`.
+
+Run architecture checks with:
+
+```bash
+uv run poe architecture
+```
 
 ## Directory Template
 
@@ -60,31 +73,9 @@ uv run poe architecture
 
 The aggregate gate `uv run poe harness` also runs this check.
 
-## Port / Adapter Pattern
+## Ports and Events
 
-Define abstract ports in `application/ports/` using `Protocol`:
-
-```python
-from typing import Protocol, runtime_checkable
-
-@runtime_checkable
-class ItemRepository(Protocol):
-    async def find_by_id(self, item_id: str) -> Item | None: ...
-
-    async def save(self, item: Item) -> Item: ...
-```
-
-Implement the adapter in `infrastructure/repositories/`:
-
-```python
-class MongoItemRepository(ItemRepository):
-    def __init__(self, collection: AsyncIOMotorCollection) -> None:
-        self._col = collection
-
-    async def find_by_id(self, item_id: str) -> Item | None:
-        doc = await self._col.find_one({"_id": item_id})
-        return Item(**doc) if doc else None
-```
+Use `Protocol` classes under `application/ports/` for dependencies that need adapters. Put concrete implementations under `infrastructure/`.
 
 ## Event Pattern
 
@@ -110,17 +101,6 @@ def get_item_service(request: Request) -> ItemService:
 ```
 
 Use `Depends(get_item_service)` in route handlers. If your project has not integrated a database yet, keep the same dependency shape but substitute an in-memory or mocked adapter.
-
-## File Constraints
-
-| Constraint                | Limit  |
-|---------------------------|--------|
-| Max lines per file        | 800    |
-| Max lines per function    | 50     |
-| Max nesting depth         | 4      |
-| Preferred file size       | 200-400 lines |
-
-If a file exceeds these limits, extract a new module.
 
 ## New Context Checklist
 

@@ -45,6 +45,7 @@ uv run poe frontend                # start Vite dev server on port 8006
 │   ├── render_copier_backend.py
 │   └── template_smoke.py
 ├── docs/                    # architecture & development guides
+├── .agents/skills/          # reusable agent workflows
 ├── harness_tests/           # tests for harness scripts and template tools
 ├── src/
 │   ├── app_name/            # Python backend (FastAPI)
@@ -149,21 +150,17 @@ See [docs/git-workflow.md](docs/git-workflow.md) and [docs/ci-cd.md](docs/ci-cd.
 
 | Doc | Content |
 |---|---|
-| [architecture.md](docs/architecture.md) | Layered architecture, DI, event bus |
-| [coding-standards.md](docs/coding-standards.md) | Naming, style, file constraints |
-| [module-development.md](docs/module-development.md) | How to create new contexts |
-| [context-contracts.md](docs/context-contracts.md) | Inter-context communication |
-| [api-conventions.md](docs/api-conventions.md) | REST API design conventions |
-| [frontend-standards.md](docs/frontend-standards.md) | Vue3 component/state/API standards |
-| [security-standards.md](docs/security-standards.md) | 11 security rules + checklist |
-| [testing-guide.md](docs/testing-guide.md) | TDD flow, pytest patterns |
-| [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging management |
-| [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix rules |
-| [ci-cd.md](docs/ci-cd.md) | GitHub Actions, deployment profiles, variables, and secrets |
-| [harness-engineering.md](docs/harness-engineering.md) | Repository-owned agent workflow and quality gates |
-| [template-engine.md](docs/template-engine.md) | Copier migration plan for safe project generation and updates |
+| [module-development.md](docs/module-development.md) | Backend structure and bounded contexts |
+| [api-conventions.md](docs/api-conventions.md) | API envelope and contract gate |
+| [frontend-standards.md](docs/frontend-standards.md) | Frontend API boundary and generated types |
+| [security-standards.md](docs/security-standards.md) | Enforced security baseline |
+| [testing-guide.md](docs/testing-guide.md) | Test directory boundaries |
+| [configuration-guide.md](docs/configuration-guide.md) | Config system (.env / yaml) + logging |
+| [git-workflow.md](docs/git-workflow.md) | Branch, PR, release, and hotfix flow |
+| [ci-cd.md](docs/ci-cd.md) | GitHub Actions and deployment profiles |
+| [template-engine.md](docs/template-engine.md) | Copier generation and updates |
 
-AI coding agents should start with [AGENTS.md](AGENTS.md). Keep required agent workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
+AI coding agents should start with [AGENTS.md](AGENTS.md), then read only task-relevant docs or skills. Harness workflow lives in [.agents/skills/harness-engineering/SKILL.md](.agents/skills/harness-engineering/SKILL.md). Keep required workflow in repository-owned instructions and harness checks, not tool-specific adapter files.
 
 ## Using as a GitHub Template
 

@@ -39,13 +39,14 @@ The first version intentionally uses stable existing checks:
 - architecture boundary checks
 - security baseline checks
 - API contract drift checks
+- frontend source boundary checks
 - backend tests
 - frontend build
 - frontend tests
 
 ## Roadmap
 
-1. Frontend harness: add lint rules and smoke tests for main user paths.
+1. Frontend harness: add smoke tests for main user paths and promote more rules only when false positives are low.
 2. Runtime harness: add readiness, liveness, metrics, tracing, and structured logs.
 3. Template engine: keep Copier generation and generated-project smoke tests as repository-owned guarantees.
 4. Security harness: expand the baseline only when new rules are deterministic enough to avoid noisy false positives.

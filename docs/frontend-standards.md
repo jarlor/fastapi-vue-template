@@ -2,6 +2,22 @@
 
 Vue 3 + Vite + Arco Design Web Vue development standards.
 
+## Enforced Baseline
+
+Run the frontend source boundary gate before opening or updating a PR that touches frontend code:
+
+```bash
+uv run poe frontend-harness
+```
+
+`uv run poe harness` runs the same gate. The current deterministic baseline enforces:
+
+- HTTP clients (`axios`, `fetch`, `XMLHttpRequest`) are only used under `src/frontend/src/api`.
+- Vue components use `<script setup lang="ts">`.
+- Vue component `<style>` blocks are scoped.
+- Vue components stay at or below 300 lines.
+- Static inline `style="..."` attributes are prohibited; use classes or dynamic `:style`.
+
 ## Project Structure
 
 ```

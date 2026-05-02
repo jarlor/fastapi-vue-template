@@ -15,7 +15,8 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FULL_SHA_RE = re.compile(r"^[a-f0-9]{40}$")
 PINNED_ACTION_RE = re.compile(r"^[^@\s]+@[a-f0-9]{40}$")
-DISALLOWED_LOCKFILES = (
+FRONTEND_LOCKFILES = (
+    "src/frontend/package-lock.json",
     "src/frontend/yarn.lock",
     "src/frontend/pnpm-lock.yaml",
     "src/frontend/bun.lock",
@@ -51,19 +52,28 @@ def load_yaml(path: Path) -> Any:
 def check_lockfiles(root: Path) -> list[Violation]:
     """Require the selected package-manager lockfiles and reject drift."""
     violations: list[Violation] = []
-    required = ("uv.lock", "src/frontend/package-lock.json")
-    for relative in required:
-        if not (root / relative).is_file():
-            violations.append(Violation(root / relative, "required lockfile is missing"))
+    if not (root / "uv.lock").is_file():
+        violations.append(Violation(root / "uv.lock", "required lockfile is missing"))
 
-    for relative in DISALLOWED_LOCKFILES:
-        if (root / relative).exists():
-            violations.append(Violation(root / relative, "non-npm frontend lockfile is prohibited"))
+    present_frontend_lockfiles = [relative for relative in FRONTEND_LOCKFILES if (root / relative).exists()]
+    if not present_frontend_lockfiles:
+        violations.append(Violation(root / "src/frontend", "one frontend package-manager lockfile is required"))
+    if len(present_frontend_lockfiles) > 1:
+        violations.append(
+            Violation(
+                root / "src/frontend",
+                "only one frontend package-manager lockfile is allowed: " + ", ".join(present_frontend_lockfiles),
+            )
+        )
+
+    if "src/frontend/package-lock.json" not in present_frontend_lockfiles:
+        return violations
 
     package_json = root / "src/frontend/package.json"
     package_data = json.loads(package_json.read_text())
-    if package_data.get("packageManager") != "npm@10.9.2":
-        violations.append(Violation(package_json, 'packageManager must be "npm@10.9.2"'))
+    package_manager = package_data.get("packageManager", "")
+    if package_manager and not package_manager.startswith("npm@"):
+        violations.append(Violation(package_json, "packageManager must match the committed frontend lockfile"))
 
     return violations
 

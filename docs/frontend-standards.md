@@ -13,10 +13,8 @@ uv run poe frontend-harness
 `uv run poe harness` runs the same gate. The current deterministic baseline enforces:
 
 - HTTP clients (`axios`, `fetch`, `XMLHttpRequest`) are only used under `src/frontend/src/api`.
-- Vue components use `<script setup lang="ts">`.
-- Vue component `<style>` blocks are scoped.
-- Vue components stay at or below 300 lines.
-- Static inline `style="..."` attributes are prohibited; use classes or dynamic `:style`.
+
+The remaining guidance in this document is advisory. Generated projects may choose a stricter component style, but the template default only blocks API-boundary drift that is broadly useful across project types.
 
 ## Project Structure
 

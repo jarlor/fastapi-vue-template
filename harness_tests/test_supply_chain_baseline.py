@@ -126,18 +126,18 @@ updates:
         assert any("Dependabot must cover github-actions at /" in message for message in messages)
         assert any("Dependabot must cover uv at /" in message for message in messages)
 
-    def test_requires_lockfile_and_package_manager_policy(self, tmp_path: Path) -> None:
+    def test_requires_single_frontend_lockfile_policy(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
         (tmp_path / "uv.lock").unlink()
         write_file(tmp_path, "src/frontend/yarn.lock")
         package_json = tmp_path / "src/frontend/package.json"
-        package_json.write_text(json.dumps({"name": "frontend"}))
+        package_json.write_text(json.dumps({"name": "frontend", "packageManager": "pnpm@10.0.0"}))
 
         messages = messages_for(tmp_path)
 
         assert any("uv.lock: required lockfile is missing" in message for message in messages)
-        assert any("src/frontend/yarn.lock: non-npm frontend lockfile is prohibited" in message for message in messages)
-        assert any('packageManager must be "npm@10.9.2"' in message for message in messages)
+        assert any("only one frontend package-manager lockfile is allowed" in message for message in messages)
+        assert any("packageManager must match the committed frontend lockfile" in message for message in messages)
 
     def test_blocks_mutable_install_commands(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)

@@ -63,6 +63,8 @@ Poe task names are the stable local and CI entrypoints. Scripts under `scripts/h
 
 New checks should start narrow or report-only when false positives are likely. Promote them to required CI checks after they are stable.
 
+Default harness rules should stay broadly useful for generated projects. Do not hard-code product, infrastructure, database, UI style, or deployment preferences unless the template itself owns that behavior. Put project-specific recipes in generated-project docs only when they explain current template code; otherwise leave the decision to the downstream project.
+
 ## PR Evidence
 
 Every PR should state:

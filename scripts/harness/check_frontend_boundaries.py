@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,15 +12,12 @@ FRONTEND_SRC = PROJECT_ROOT / "src" / "frontend" / "src"
 API_ROOT = FRONTEND_SRC / "api"
 IGNORED_DIRS = {"node_modules", "dist", ".vite", "coverage"}
 HTTP_PATTERNS = (
-    re.compile(r"""from\s+["']axios["']"""),
-    re.compile(r"""import\s+axios\b"""),
-    re.compile(r"\bfetch\s*\("),
-    re.compile(r"\bXMLHttpRequest\b"),
+    'from "axios"',
+    "from 'axios'",
+    "import axios",
+    "fetch(",
+    "XMLHttpRequest",
 )
-SCRIPT_TAG_RE = re.compile(r"<script\b([^>]*)>", re.IGNORECASE)
-STYLE_TAG_RE = re.compile(r"<style\b([^>]*)>", re.IGNORECASE)
-STATIC_INLINE_STYLE_RE = re.compile(r"\sstyle\s*=")
-MAX_VUE_LINES = 300
 
 
 @dataclass(frozen=True)
@@ -73,7 +69,8 @@ def check_http_boundary(path: Path, lines: list[str]) -> list[Violation]:
 
     violations: list[Violation] = []
     for line_number, line in enumerate(lines, start=1):
-        if any(pattern.search(line) for pattern in HTTP_PATTERNS):
+        compact_line = line.replace(" ", "")
+        if any(pattern in line or pattern.replace(" ", "") in compact_line for pattern in HTTP_PATTERNS):
             violations.append(
                 Violation(
                     path=path,
@@ -84,57 +81,10 @@ def check_http_boundary(path: Path, lines: list[str]) -> list[Violation]:
     return violations
 
 
-def check_vue_file(path: Path, lines: list[str]) -> list[Violation]:
-    """Check Vue single-file component rules."""
-    violations: list[Violation] = []
-    if len(lines) > MAX_VUE_LINES:
-        violations.append(
-            Violation(
-                path=path,
-                line=MAX_VUE_LINES + 1,
-                message=f"Vue components must stay at or below {MAX_VUE_LINES} lines",
-            )
-        )
-
-    for line_number, line in enumerate(lines, start=1):
-        script = SCRIPT_TAG_RE.search(line)
-        if script and ("setup" not in script.group(1) or 'lang="ts"' not in script.group(1)):
-            violations.append(
-                Violation(
-                    path=path,
-                    line=line_number,
-                    message='Vue components must use <script setup lang="ts">',
-                )
-            )
-
-        style = STYLE_TAG_RE.search(line)
-        if style and "scoped" not in style.group(1):
-            violations.append(
-                Violation(
-                    path=path,
-                    line=line_number,
-                    message="Vue component styles must be scoped",
-                )
-            )
-
-        if STATIC_INLINE_STYLE_RE.search(line):
-            violations.append(
-                Violation(
-                    path=path,
-                    line=line_number,
-                    message="static inline styles are prohibited; use classes or dynamic :style",
-                )
-            )
-    return violations
-
-
 def check_file(path: Path) -> list[Violation]:
     """Check one frontend source file."""
     lines = path.read_text().splitlines()
-    violations = check_http_boundary(path, lines)
-    if path.suffix == ".vue":
-        violations.extend(check_vue_file(path, lines))
-    return violations
+    return check_http_boundary(path, lines)
 
 
 def check_frontend_boundaries() -> list[Violation]:

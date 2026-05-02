@@ -48,9 +48,11 @@ uv run poe test
 npm --prefix src/frontend run build
 npm --prefix src/frontend run test
 uv run poe harness
+uv run poe template-smoke
 ```
 
 `uv run poe harness` is the local aggregate gate. New deterministic checks should be added there before they become required in CI.
+Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
 Poe task names are the public entrypoints; Python files under `scripts/harness/` are implementation details for repository-owned gates.
 
 ## Documentation Expectations

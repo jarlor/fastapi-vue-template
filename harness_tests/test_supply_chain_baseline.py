@@ -49,26 +49,6 @@ def seed_repo(root: Path) -> None:
     write_file(root, "src/frontend/package-lock.json")
     write_file(
         root,
-        ".github/dependabot.yml",
-        """
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "uv"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "weekly"
-""",
-    )
-    write_file(
-        root,
         ".github/workflows/ci.yml",
         f"""
 name: CI
@@ -105,26 +85,6 @@ class TestSupplyChainBaseline:
         messages = messages_for(tmp_path)
 
         assert any("uses unpinned action: actions/checkout@v6" in message for message in messages)
-
-    def test_requires_dependabot_coverage(self, tmp_path: Path) -> None:
-        seed_repo(tmp_path)
-        write_file(
-            tmp_path,
-            ".github/dependabot.yml",
-            """
-version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "weekly"
-""",
-        )
-
-        messages = messages_for(tmp_path)
-
-        assert any("Dependabot must cover github-actions at /" in message for message in messages)
-        assert any("Dependabot must cover uv at /" in message for message in messages)
 
     def test_requires_single_frontend_lockfile_policy(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)

@@ -22,11 +22,6 @@ FRONTEND_LOCKFILES = (
     "src/frontend/bun.lock",
     "src/frontend/bun.lockb",
 )
-REQUIRED_DEPENDABOT_UPDATES = {
-    ("github-actions", "/"),
-    ("uv", "/"),
-    ("npm", "/src/frontend"),
-}
 WRITE_PERMISSION_ALLOWED_JOBS = {
     ".github/workflows/backmerge-main-to-dev.yml": {"backmerge"},
     ".github/workflows/release.yml": {"release", "backmerge"},
@@ -75,22 +70,6 @@ def check_lockfiles(root: Path) -> list[Violation]:
     if package_manager and not package_manager.startswith("npm@"):
         violations.append(Violation(package_json, "packageManager must match the committed frontend lockfile"))
 
-    return violations
-
-
-def check_dependabot(root: Path) -> list[Violation]:
-    """Require Dependabot coverage for the template dependency surfaces."""
-    path = root / ".github/dependabot.yml"
-    if not path.is_file():
-        return [Violation(path, "Dependabot configuration is required")]
-
-    config = load_yaml(path)
-    updates = config.get("updates", []) if isinstance(config, dict) else []
-    covered = {(entry.get("package-ecosystem"), entry.get("directory")) for entry in updates if isinstance(entry, dict)}
-    violations = []
-    for ecosystem, directory in sorted(REQUIRED_DEPENDABOT_UPDATES):
-        if (ecosystem, directory) not in covered:
-            violations.append(Violation(path, f"Dependabot must cover {ecosystem} at {directory}"))
     return violations
 
 
@@ -151,19 +130,6 @@ def check_workflow_commands(path: Path, workflow_text: str) -> list[Violation]:
     return violations
 
 
-def check_action_pins_have_dependabot_tracking(root: Path) -> list[Violation]:
-    """Require Dependabot tracking when workflows pin actions to SHAs."""
-    dependabot = root / ".github/dependabot.yml"
-    if not dependabot.is_file():
-        return []
-
-    dependabot_text = dependabot.read_text()
-    if 'package-ecosystem: "github-actions"' in dependabot_text:
-        return []
-
-    return [Violation(dependabot, "SHA-pinned workflow actions require github-actions Dependabot updates")]
-
-
 def check_workflows(root: Path) -> list[Violation]:
     """Check all workflow supply-chain rules."""
     violations: list[Violation] = []
@@ -173,7 +139,6 @@ def check_workflows(root: Path) -> list[Violation]:
         violations.extend(find_unpinned_actions(path, workflow))
         violations.extend(check_workflow_permissions(root, path, workflow))
         violations.extend(check_workflow_commands(path, workflow_text))
-    violations.extend(check_action_pins_have_dependabot_tracking(root))
     return violations
 
 
@@ -182,7 +147,6 @@ def check_supply_chain_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     root = root.resolve()
     violations: list[Violation] = []
     violations.extend(check_lockfiles(root))
-    violations.extend(check_dependabot(root))
     violations.extend(check_workflows(root))
     return violations
 

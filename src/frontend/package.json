@@ -15,7 +15,7 @@
     "@arco-design/web-vue": "^2.55.0",
     "axios": "^1.6.0",
     "pinia": "^2.1.0",
-    "vue": "^3.4.0",
+    "vue": "^3.5.34",
     "vue-router": "^4.2.0"
   },
   "devDependencies": {

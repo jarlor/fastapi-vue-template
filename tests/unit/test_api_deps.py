@@ -1,4 +1,4 @@
-"""Tests for API dependency helpers."""
+"""Tests for application dependency lookup."""
 
 from __future__ import annotations
 
@@ -7,23 +7,21 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-from app_name.api.deps import _get_registry
-from app_name.core.registry import AppRegistry
-from app_name.shared.events.bus import InProcessEventBus
+from app.bootstrap import build_container
+from app.contexts.tasks.interface.api.deps import get_task_service
 
 
-class TestGetRegistry:
-    def test_returns_registry_from_request_state(self, test_settings) -> None:
-        registry = AppRegistry(settings=test_settings, event_bus=InProcessEventBus())
-        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(registry=registry)))
+def test_returns_task_service_from_app_state() -> None:
+    container = build_container()
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(container=container)))
 
-        assert _get_registry(request) is registry
+    assert get_task_service(request) is container.tasks
 
-    def test_raises_503_when_registry_missing(self) -> None:
-        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
 
-        with pytest.raises(HTTPException) as exc:
-            _get_registry(request)
+def test_missing_container_is_service_unavailable() -> None:
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
 
-        assert exc.value.status_code == 503
-        assert exc.value.detail == "Application not ready"
+    with pytest.raises(HTTPException) as exc:
+        get_task_service(request)
+
+    assert exc.value.status_code == 503

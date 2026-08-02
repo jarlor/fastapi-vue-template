@@ -3,12 +3,12 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    redirect: "/dashboard",
+    redirect: "/tasks",
   },
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: () => import("@/pages/Dashboard.vue"),
+    path: "/tasks",
+    name: "Tasks",
+    component: () => import("@/pages/TasksPage.vue"),
   },
   // Add more routes here
 ];

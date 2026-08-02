@@ -5,7 +5,7 @@ import { resolve } from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "APP_");
 
-  const frontendPort = parseInt(env.APP_FRONTEND_PORT || "8006", 10);
+  const frontendPort = parseInt(env.APP_FRONTEND_PORT || "5173", 10);
   const backendUrl = env.APP_BACKEND_URL || "http://127.0.0.1:8665";
 
   return {

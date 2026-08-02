@@ -1,30 +1,29 @@
-## Summary
+## Intent
 
-- 
+Linked issue:
 
-## Harness Evidence
+Why is this change needed, and which acceptance examples does it satisfy?
 
-- [ ] `uv run poe harness`
-- [ ] `uv run poe agent-start` (agent-driven changes only, before first edit)
-- [ ] `uv run poe template-smoke` (required when template generation, Copier config, generated-project files, or harness behavior changes)
+## Change
 
-Notes:
+What changed? Include important non-goals or deliberate omissions.
 
-## Contract / Interface Impact
+## Risk and Contracts
 
-- [ ] No public API, context contract, config, or deployment behavior changed.
-- [ ] Public API changed and tests/contracts were updated.
-- [ ] Backend boundaries or runtime contracts changed and relevant tests/harness were updated.
-- [ ] Config or secret requirements changed and examples/instructions were updated.
-- [ ] Deployment or CI behavior changed and instructions/workflows were updated.
+- Risk class: `R0` / `R1` / `R2`
+- Protected-risk triggers, if any:
+- API, configuration, data, security, dependency, architecture, deployment, or harness impact:
+- Linked ADR, if required:
+- Human decision owner:
 
-## Security Review
+Risk definitions and approval requirements are authoritative in `CONTRIBUTING.md`.
 
-- [ ] No new secrets or credentials were added.
-- [ ] No new authentication or authorization behavior was added.
-- [ ] Error responses do not expose internal details.
-- [ ] User input is validated at the boundary.
+## Verification
 
-## Follow-ups
+Record the result of `uv run poe harness`, plus any focused manual, contract, migration, or rollout verification. Explain any check that was not run; do not replace CI evidence with a checkbox.
 
-- 
+## Human Review Focus
+
+Which product decisions, assumptions, residual risks, or changes to the verification oracle need particular human attention?
+
+Automation or AI assistance may be noted here, but it does not change the required human approval.

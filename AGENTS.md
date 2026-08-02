@@ -1,104 +1,65 @@
-# AGENTS.md -- AI Agent Operating Contract
+# AI Agent Operating Contract
 
-If you arrived here from `00-START-HERE.md` or `PROJECT_MAP.md`, keep using `uv run poe ...` as the public command interface.
+This file is the single repository contract for AI coding agents. It applies whether the agent is implementing, reviewing, testing, or documenting a change.
 
-## Repository Role
+The allocation of human, implementation, verification, and release authority is defined in [CONTRIBUTING.md](CONTRIBUTING.md). Code boundaries are defined in [ARCHITECTURE.md](ARCHITECTURE.md). Do not duplicate or reinterpret those policies here.
 
-This is a production-oriented FastAPI + Vue project template for Vibe Coding and Harness Engineering.
+## Before Editing
 
-The repository-owned harness is the authority. Skills and these instructions guide work; Poe tasks, scripts, pre-commit, and CI decide whether a change is acceptable.
+1. Read the linked issue or pull request and identify its intent, acceptance examples, non-goals, risk class, and human decision owner.
+2. Read only the relevant sections of `ARCHITECTURE.md` and the task-relevant source and tests.
+3. Inspect the current branch and working tree. Preserve unrelated user changes.
+4. If the change contract is missing, ambiguous, or has an unconfirmed protected-risk trigger, ask the human decision owner before implementation.
 
-## Default Workflow
+Do not execute a repository-wide discovery ritual. Ignore dependency trees, virtual environments, caches, build output, logs, coverage output, and `.git` as source context.
 
-1. Read this file first. If you need a quick source map before editing, read `PROJECT_MAP.md`; do not infer source roots by sweeping the entire tree.
-2. Run `uv run poe agent-start` as the first repository command. It prints `git status --short --branch` and tells you whether to finish init or create a feature branch before editing.
-3. Read the task-relevant skill listed below. Do not sweep the repository by default, and exclude `.git/`, `.venv/`, `node_modules/`, `.ruff_cache/`, `.pytest_cache/`, logs, and generated coverage files from repository exploration.
-4. Work on a focused feature branch before editing product code. If this generated project uses the template's default Git model, branch from `dev`; if `dev` does not exist yet, create it deliberately or follow the project's actual integration branch.
-5. Run the smallest relevant Poe checks while editing.
-6. Run `uv run poe harness` before opening or updating a PR.
-7. Run `uv run poe template-smoke` when template generation, Copier config, generated-project files, or harness behavior changes.
+## Agent Authority
 
-## Init Workflow
+An agent may:
 
-After this repository is generated from the template, initialize the working tree before feature work:
+- inspect repository-owned files relevant to the task;
+- propose a plan and identify uncertainty or risk;
+- edit code, tests, contracts, and documentation within the confirmed scope;
+- run repository checks and report their exact results;
+- suggest follow-up work without silently expanding the current change.
 
-```bash
-git init
-uv sync
-npm --prefix src/frontend ci
-uv run pre-commit install
-uv run poe harness
-git add .
-git commit -m "chore: initialize from template"
-uv run poe agent-handoff
-```
+An agent must not:
 
-Run `git init` only when `.git/` does not exist yet. If the repository has no commits after initialization, create the template baseline commit before feature work. Run `uv run poe agent-handoff` only after the baseline commit; it creates a focused feature branch when still on a baseline branch and removes rebuildable dependency trees such as `.venv/`, `src/frontend/node_modules/`, and `src/frontend/dist/` so agent context scans start from source files. Always create a focused feature branch before changing product code. Do not hand work to an agent on the baseline branch.
+- invent or silently broaden product intent, acceptance criteria, or risk tolerance;
+- weaken acceptance tests, contracts, CI, security controls, or harness checks merely to make its implementation pass;
+- treat its own review as human approval;
+- approve, merge, deploy, apply GitHub control-plane changes, rotate secrets, migrate production data, or exercise a human maintainer's release authority;
+- perform destructive or irreversible operations without explicit authority for the exact target and impact.
 
-Do not run `uv run poe template-smoke` for ordinary generated-project feature work. That gate is for template maintenance: Copier config, generated-project files, render scripts, template sentinels, and harness behavior.
+Any protected-risk trigger listed in `CONTRIBUTING.md` requires explicit human confirmation before implementation continues. A proposed change to an architecture invariant also requires an ADR.
 
-For template maintenance, also run:
+## Repository Interface
 
-```bash
-uv run poe template-smoke
-```
+Use Poe tasks as the public interface. Scripts under `scripts/harness/` are implementation details.
 
-Then choose the task workflow:
+- Run `uv run poe check` for fast feedback while editing.
+- Run `uv run poe harness` before handing work to a reviewer or updating a pull request.
+- Use `uv run poe repo-bootstrap bootstrap ... --dry-run` only when GitHub governance is in scope. Running it with `--apply` changes external repository state and requires explicit human authorization for the exact repository, profile, and maintainers.
 
-- Use `.agents/skills/template-maintenance/SKILL.md` for template mechanics, Copier, generated-project files, harness gates, CI, PR workflow, and agent instruction changes.
-- Use `.agents/skills/project-development/SKILL.md` for normal generated-project feature work.
+If a command fails, fix the product change or report the blocker. Do not bypass the command or modify its gate unless governance itself is explicitly in scope and human-approved.
 
-## Core Rules
+## Implementation Rules
 
-- Backend code lives under `src/app_name`.
-- Frontend code lives under `src/frontend`.
-- Backend features should be built as bounded contexts under the generated backend package's `contexts/<context_name>/` directory.
-- Contexts must not import each other directly. Use events or ports.
-- Keep route handlers thin. Business logic belongs in application services.
-- Keep `create_app()` as the app factory. Do not reintroduce a module-level FastAPI app singleton.
-- Avoid module-level side effects such as creating settings, opening files, connecting to databases, or making network calls.
-- Frontend components must not call `axios`, `fetch`, `EventSource`, or `XMLHttpRequest` directly. Use `src/frontend/src/api`.
+- Make the smallest coherent change that satisfies the confirmed acceptance examples.
+- Treat contracts and acceptance tests as the independent oracle, not as implementation scaffolding.
+- Add focused tests for new behavior and regressions.
+- Preserve compatibility unless the change contract explicitly authorizes a break.
+- Follow `ARCHITECTURE.md`; do not introduce a new architecture convention inside a feature patch.
+- Never commit credentials, local environment values, generated dependency trees, or build output.
 
-## Commands
+## Handoff
 
-Use Poe task names as public entrypoints. Python files under `scripts/harness/` are implementation details.
+Report:
 
-```bash
-uv run poe harness
-uv run poe template-smoke
-```
+- what changed and why;
+- acceptance examples covered;
+- architecture, contract, security, data, dependency, deployment, or harness impact;
+- commands run and their results;
+- remaining uncertainty, decisions, or follow-ups that require a human.
 
-Targeted checks:
-
-```bash
-uv run poe agent-start
-uv run poe agent-handoff
-uv run poe lint
-uv run poe harness-test
-uv run poe governance-harness
-uv run poe supply-chain
-uv run poe architecture
-uv run poe security
-uv run poe api-contracts
-uv run poe frontend-harness
-uv run poe runtime-harness
-uv run poe test
-npm --prefix src/frontend run build
-npm --prefix src/frontend run test
-```
-
-## Skill Routing
-
-Use skills as task references, not as a mandatory reading set.
-
-| Task | Read |
-|---|---|
-| Quick source map and ignored paths | `PROJECT_MAP.md` |
-| Normal generated-project feature work | `.agents/skills/project-development/SKILL.md` |
-| Template generation, Copier, generated project smoke, harness, CI, or agent instructions | `.agents/skills/template-maintenance/SKILL.md` |
-
-## PR Expectations
-
-Every PR should state what changed, why it changed, which checks ran, and whether API contracts, config, secrets, deployment behavior, or harness behavior changed.
-
-Use `.github/pull_request_template.md` when opening a PR.
+The agent's handoff is evidence for review, not approval to merge.

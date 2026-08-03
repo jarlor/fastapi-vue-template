@@ -14,14 +14,15 @@ its own verifier, approver, and release authority. The deterministic repository 
 but it cannot reliably identify every omission, inconsistent assumption, or cross-file risk. A probabilistic review
 can search for those issues both before local handoff and after work is offered in a pull request.
 
-Running a model inside `poe harness` would make the required gate depend on network access, provider availability,
+Running a model inside `poe verify` would make the required gate depend on network access, provider availability,
 credentials, quota, cost, and probabilistic output. A prose-only local review instruction can be forgotten. Conversely,
 a CI-only review arrives after local implementation is already complete and requires a separate provider decision.
 
 ## Decision
 
-Keep `uv run poe harness` and `CI / required` deterministic and blocking. Add two advisory review lanes that share the
-repository-owned OpenCodeReview rules but have different execution and trust boundaries.
+Keep `uv run poe verify`, the pinned central CI Harness, and `CI / required` deterministic and blocking. Add two
+advisory review lanes that share the repository-owned OpenCodeReview rules but have different execution and trust
+boundaries.
 
 The local completion lane:
 
@@ -61,7 +62,7 @@ assert model findings from either lane.
 
 ## Alternatives Considered
 
-- **Run OCR inside `poe harness`.** This would mix probabilistic external behavior into the required deterministic
+- **Run OCR inside `poe verify`.** This would mix probabilistic external behavior into the required deterministic
   oracle and make ordinary local development require secrets and paid network access.
 - **Make OCR a required merge check.** This would block delivery on provider outages without making findings
   authoritative; OpenCodeReview exits successfully when it reports findings.

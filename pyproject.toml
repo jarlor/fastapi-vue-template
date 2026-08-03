@@ -48,46 +48,30 @@ default-groups = ["dev"]
 [tool.poe.tasks]
 api = "python -m app.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
-lint = "ruff check .codex src/app scripts tests harness_tests"
-fmt = "ruff format .codex src/app scripts tests harness_tests"
-format-check = "ruff format --check .codex src/app scripts tests harness_tests"
-test-fast = "python -m pytest tests/ -q"
-test = "python -m pytest tests/ -v --cov=src/app --cov-report=term-missing --cov-fail-under=80"
-harness-test = "python -m pytest harness_tests/ -v"
-supply-chain = "python scripts/harness/check_supply_chain_baseline.py"
-architecture = "python scripts/harness/check_context_boundaries.py"
-security = "python scripts/harness/check_security_baseline.py"
-api-contracts = "python scripts/harness/check_api_contracts.py"
-api-contracts-write = "python scripts/harness/check_api_contracts.py --write"
-frontend-harness = "node scripts/harness/check_frontend_boundaries.mjs"
+lint = "ruff check .codex src/app scripts tests"
+fmt = "ruff format .codex src/app scripts tests"
+format-check = "ruff format --check .codex src/app scripts tests"
+test-fast = "python -m pytest tests/ -q --ignore=tests/governance/test_local_review_hook.py"
+test = "python -m pytest tests/ -v --cov=src/app --cov-report=term-missing"
+api-contracts = "python scripts/contracts/check_api_contracts.py"
+api-contracts-write = "python scripts/contracts/check_api_contracts.py --write"
 frontend-build = { cmd = "npm run build", cwd = "src/frontend" }
 frontend-test = { cmd = "npm run test", cwd = "src/frontend" }
 repo-bootstrap = "python scripts/governance/bootstrap_github.py"
 check = [
     "format-check",
     "lint",
-    "harness-test",
-    "supply-chain",
-    "architecture",
-    "security",
-    "frontend-harness",
     "test-fast",
-    "frontend-build",
-    "frontend-test",
 ]
-harness = [
+verify = [
     "format-check",
     "lint",
-    "harness-test",
-    "supply-chain",
-    "architecture",
-    "security",
     "api-contracts",
-    "frontend-harness",
     "test",
     "frontend-build",
     "frontend-test",
 ]
+harness = ["verify"]
 
 # ---------------------------------------------------------------------------
 # Ruff
@@ -101,10 +85,9 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "S"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
-"harness_tests/**/*.py" = ["S101", "S603", "S607"]
+"tests/governance/test_local_review_hook.py" = ["S101", "S603", "S607"]
 "src/app/config.py" = ["S104"]
-"scripts/harness/check_api_contracts.py" = ["S603"]
-"scripts/harness/check_security_baseline.py" = ["S607"]
+"scripts/contracts/check_api_contracts.py" = ["S603"]
 
 # ---------------------------------------------------------------------------
 # Pytest

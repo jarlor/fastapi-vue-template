@@ -26,7 +26,7 @@ architecture invariants, repository commands, CI, human review, or release decis
 |---|---|
 | How the agent plans, implements, debugs, and checks its work | Applicable Superpowers skills |
 | Product intent, acceptance examples, non-goals, and risk acceptance | Human-confirmed change contract |
-| Architecture, contracts, security, and other enforceable invariants | Repository files and `uv run poe harness` |
+| Architecture, contracts, security, and other enforceable invariants | Repository files, `uv run poe verify`, and the pinned central CI Harness |
 | Completion-stage advisory code review | Repository local review lane when supported; otherwise Superpowers review; optional PR review |
 | Merge and release readiness | Human maintainer |
 
@@ -81,7 +81,7 @@ authority separate:
 3. Use the applicable Superpowers skills to design or plan at the scale of the change, implement the smallest coherent
    solution, add focused tests, and debug failures from evidence. Use `uv run poe check` for fast feedback while
    editing, and commit coherent branch checkpoints when useful.
-4. Use Superpowers verification-before-completion with `uv run poe harness` as the required fresh command before
+4. Use Superpowers verification-before-completion with `uv run poe verify` as the required fresh command before
    handoff or pull-request updates. This remains the local deterministic oracle.
 5. Superpowers process reviews may be used for risky intermediate changes. At final completion in Codex, avoid an
    additional generic AI review of the same diff and allow the trusted project Stop hook to provide the standard final
@@ -91,7 +91,7 @@ authority separate:
 6. Triage each material local finding against the confirmed intent and contracts. The review continuation reports
    findings but does not edit, commit, or push. Apply an accepted fix only in a subsequent implementation pass; ask
    the human decision owner first if it broadens scope or exposes an R2 choice.
-7. After a fix, use `check` while iterating, then rerun `harness`. The changed fingerprint triggers another local
+7. After a fix, use `check` while iterating, then rerun `verify`. The changed fingerprint triggers another local
    review request before handoff.
 8. Push the branch and open or update a pull request to `main` using the repository template. Draft pull requests are
    encouraged for unresolved human decisions.
@@ -139,9 +139,11 @@ and pull request. `uv run pre-commit install` installs a local pre-push guard th
 `main`. Contributors and AI agents must not use `--no-verify` to bypass it without explicit human authorization for
 that exception.
 
-On a pull request, CI validates the Conventional Commit title and runs the complete harness. `CI / required` is the
-single stable summary result maintainers inspect before squash-merging. The local OpenCodeReview pass and optional PR
-OpenCodeReview pass are advisory; human review still owns intent, risk, and merge readiness.
+On a pull request, CI validates the Conventional Commit title and invokes the central Harness Action at a full commit
+SHA. That action runs `uv run poe verify` and the centrally owned architecture, frontend-boundary, security, and
+supply-chain checks against this repository. `CI / required` is the single stable summary result maintainers inspect
+before squash-merging. The local OpenCodeReview pass and optional PR OpenCodeReview pass are advisory; human review
+still owns intent, risk, and merge readiness.
 
 These are repository conventions, not a security boundary. A developer can bypass local hooks, and without GitHub
 branch protection or a Ruleset the hosting service can still accept a direct push or merge with failing CI. The
@@ -198,7 +200,7 @@ Each eligible PR update publishes a new pass over files OCR considers reviewable
 so removal consequences remain part of deterministic checks and human diff review. Earlier inline comments remain as
 review history rather than suppressing a new finding merely because it touches the same lines.
 The human reviewer validates each material finding against intent, contracts, and risk. A valid fix remains subject to
-the confirmed change scope, must rerun `uv run poe harness`, and needs new human confirmation if it exposes an R2
+the confirmed change scope, must rerun `uv run poe verify`, and needs new human confirmation if it exposes an R2
 decision. A false positive may be resolved with a concise explanation; zero findings is evidence, not approval.
 
 The `team` and `high-assurance` governance profiles require review-thread resolution, so their normal human workflow
@@ -223,8 +225,13 @@ These are the stable public interfaces:
 
 ```bash
 uv run poe check       # fast local feedback
-uv run poe harness     # complete required verification
+uv run poe verify      # complete local verification before handoff
 ```
+
+`uv run poe harness` remains a compatibility alias for `verify`; new automation and documentation must use the
+explicit command names. Central checker implementation and its self-tests live behind the pinned
+`jarlor/fastapi-vue-harness` CI Action, so generated repositories do not inherit the checker test suite or a Harness
+application dependency.
 
 The local advisory review is Stop-hook driven and intentionally has no Poe task; it remains outside these
 deterministic commands.

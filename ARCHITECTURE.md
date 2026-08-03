@@ -4,7 +4,8 @@ This document is the authoritative description of repository-owned architecture 
 specific evidence for them; they are not a proof of every runtime behavior. The coverage table below is the exact
 boundary between machine evidence and human review.
 
-Run `uv run poe harness` to verify the aggregate invariant set.
+Run `uv run poe verify` for complete local product verification. The pinned central CI Harness reruns it and adds the
+repository-wide architecture, frontend-boundary, security, and supply-chain checks.
 
 ## Repository Invariants
 
@@ -72,15 +73,15 @@ Vue components and stores do not call `fetch`, `axios`, `EventSource`, or `XMLHt
 
 ## Enforcement Coverage
 
-| Invariant | Automated evidence in `poe harness` | Still requires human review |
+| Invariant | Automated evidence | Still requires human review |
 |---|---|---|
-| A1–A2 | AST import/layer checks and pass/fail checker tests | whether a proposed context split or integration contract is the right design |
-| A3 | known client/stdlib import bans, `pathlib.Path` exclusion, Ruff security rules, isolated unit tests | dynamic calls, indirect side effects, and whether each new port captures the right boundary |
+| A1–A2 | CI Harness AST import/layer checks | whether a proposed context split or integration contract is the right design |
+| A3 | CI Harness client/stdlib import bans and `pathlib.Path` exclusion; local Ruff and unit tests | dynamic calls, indirect side effects, and whether each new port captures the right boundary |
 | A4 | app-factory, lifespan, health, and dependency-injection integration tests | startup/shutdown correctness for every newly introduced resource |
-| A5 | TypeScript/Vue AST network-boundary checker across JS, TS, TSX, and SFC scripts | whether API behavior and error UX are product-correct |
+| A5 | CI Harness TypeScript/Vue AST network-boundary checker across JS, TS, TSX, and SFC scripts | whether API behavior and error UX are product-correct |
 | A6 | generated OpenAPI drift check, typed request/response usage, integration and acceptance tests | whether a contract break is intended and compatible; no base-vs-head policy is inferred |
-| A7 | Git-aware secret scan, Ruff security rules, validation/error-response tests | data classification, privacy, authorization, and residual security risk |
-| A8 | lockfile, package-manager, workflow pin/permission, Dependabot, and generated-contract checks | accepting a dependency or CI-policy change |
+| A7 | CI Harness Git-aware secret scan; local Ruff and validation/error-response tests | data classification, privacy, authorization, and residual security risk |
+| A8 | CI Harness lockfile, package-manager, workflow pin/permission, and Dependabot checks; local generated-contract check | accepting a dependency or CI-policy change |
 
 Do not upgrade a human-review item into a blocking heuristic unless it meets the low-false-positive requirements in
 `CONTRIBUTING.md` and has both pass and fail tests.

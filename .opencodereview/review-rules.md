@@ -15,8 +15,9 @@ Use `CONTRIBUTING.md`, `ARCHITECTURE.md`, `AGENTS.md`, acceptance tests, and com
 - For `src/frontend/src/**`, verify that HTTP access remains owned by the API layer, public contracts stay aligned,
   and user-visible loading, empty, success, and failure behavior remain coherent.
 - For tests and contracts, look for missing externally observable cases, assertions that can pass without exercising
-  the change, and implementation-shaped tests that weaken the independent oracle.
-- For `.github/**`, `scripts/harness/**`, `harness_tests/**`, governance code, and dependency metadata, look for
+  the change, implementation-shaped tests that weaken the independent oracle, and the same behavior duplicated at
+  several test layers without each layer covering a distinct failure risk.
+- For `.github/**`, governance code, and dependency metadata, look for
   bypasses, excessive permissions, mutable dependencies, secret exposure, fail-open behavior, and weakened gates.
 - Do not request edits to generated OpenAPI artifacts directly. Report the source contract or generation drift that
   would require regeneration instead.

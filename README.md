@@ -110,12 +110,16 @@ uv run poe api
 uv run poe frontend
 ```
 
-Use the public repository commands instead of invoking scripts under `scripts/harness/` directly:
+Use the public repository commands for local product feedback:
 
 ```bash
 uv run poe check       # fast feedback while editing
-uv run poe harness     # complete required verification before a PR
+uv run poe verify      # complete verification before handoff or a PR update
 ```
+
+GitHub Actions invokes `jarlor/fastapi-vue-harness` at a full commit SHA. The central Action reruns `verify` and adds
+architecture, frontend-boundary, security, and supply-chain checks without copying their implementation or self-tests
+into repositories created from this template.
 
 After changed work reaches a stopping point, the trusted Stop hook fingerprints the committed-branch and workspace
 state, verifies the pinned OCR command, and gives Codex exact read-only preview, rule, diff, and deletion commands.
@@ -123,7 +127,7 @@ Codex runs those commands in its normal sandbox; OCR delegate mode selects revie
 repository-owned rules. This local lane needs no separate OCR model endpoint or API token. A new fingerprint gets one
 automatic review-continuation request; unchanged state is not requested again. “Local” describes workstation
 orchestration, not offline inference: the active Codex account and organization data controls still govern source and
-context processing. Use `check` while fixing accepted findings, then rerun `harness` and request another review.
+context processing. Use `check` while fixing accepted findings, then rerun `verify` and request another review.
 
 The hook is a visible, bypassable workflow guardrail, not a security boundary, required status, human approval, or
 merge authority. It runs only after the repository and exact hook definition are trusted, can be disabled by the

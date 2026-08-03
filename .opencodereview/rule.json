@@ -13,7 +13,6 @@
     "docs/adr/**/*.md",
     "scripts/governance/**/*.py",
     "tests/**/*.py",
-    "harness_tests/**/*.py",
     "**/*.test.{js,jsx,ts,tsx}",
     "**/*.spec.{js,jsx,ts,tsx}",
     "**/__tests__/**"

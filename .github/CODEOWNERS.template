@@ -13,7 +13,6 @@
 /CONTRIBUTING.md __MAINTAINERS__
 /pyproject.toml __MAINTAINERS__
 /scripts/governance/ __MAINTAINERS__
-/scripts/harness/ __MAINTAINERS__
 /contracts/ __MAINTAINERS__
 /tests/acceptance/ __MAINTAINERS__
 /docs/adr/ __MAINTAINERS__

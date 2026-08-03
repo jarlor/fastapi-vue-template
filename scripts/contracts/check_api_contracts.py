@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export and verify committed API contract artifacts."""
+"""Export and verify this application's committed API contract artifacts."""
 
 from __future__ import annotations
 
@@ -11,9 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from app.main import create_app
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path.cwd().resolve()
 OPENAPI_PATH = PROJECT_ROOT / "contracts" / "openapi.json"
 FRONTEND_TYPES_PATH = PROJECT_ROOT / "src" / "frontend" / "src" / "api" / "generated" / "openapi.ts"
 FRONTEND_ROOT = PROJECT_ROOT / "src" / "frontend"
@@ -26,6 +24,8 @@ def normalized_json(data: dict[str, Any]) -> str:
 
 def export_openapi() -> str:
     """Build the FastAPI app and export its OpenAPI schema."""
+    from app.main import create_app
+
     app = create_app()
     return normalized_json(app.openapi())
 
@@ -95,16 +95,16 @@ def relative_to_project(path: Path) -> Path:
         return path
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="Refresh committed contract artifacts.")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI entry point."""
-    args = parse_args()
+    args = parse_args(argv)
     try:
         openapi_text = export_openapi()
         types_text = generate_types(openapi_text)

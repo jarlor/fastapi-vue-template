@@ -36,29 +36,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081
-
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version-file: ".python-version"
-
-      - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: src/frontend/package-lock.json
-
-      - name: Install Python dependencies
-        run: uv sync --frozen --group dev
-
-      - name: Install frontend dependencies
-        run: npm ci --prefix src/frontend --no-audit --no-fund
-
-      - name: Run the complete repository harness
-        run: uv run poe harness
+      - name: Run the pinned central CI harness
+        uses: jarlor/fastapi-vue-harness@1b1695414cb10406f09617efab88794d89f0c1dc
 
   required:
     name: required

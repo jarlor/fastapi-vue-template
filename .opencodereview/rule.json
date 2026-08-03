@@ -1,0 +1,31 @@
+{
+  "include": [
+    ".gitattributes",
+    ".pre-commit-config.yaml",
+    ".github/CODEOWNERS",
+    ".github/CODEOWNERS.template",
+    ".github/pull_request_template.md",
+    ".opencodereview/review-rules.md",
+    "AGENTS.md",
+    "ARCHITECTURE.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "docs/adr/**/*.md",
+    "scripts/governance/**/*.py",
+    "tests/**/*.py",
+    "**/*.test.{js,jsx,ts,tsx}",
+    "**/*.spec.{js,jsx,ts,tsx}",
+    "**/__tests__/**"
+  ],
+  "exclude": [
+    "contracts/openapi.json",
+    "src/frontend/src/api/generated/**"
+  ],
+  "rules": [
+    {
+      "path": "**",
+      "rule": ".opencodereview/review-rules.md",
+      "merge_system_rule": true
+    }
+  ]
+}

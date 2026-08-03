@@ -1,0 +1,62 @@
+name: OpenCodeReview
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: open-code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  advisory-review:
+    name: Advisory review
+    if: >-
+      vars.OCR_ENABLED == 'true'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+      && github.event.pull_request.draft == false
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      OCR_NO_UPDATE: "1"
+    steps:
+      - name: Review PR without executing its code
+        id: ocr
+        uses: alibaba/open-code-review@5829539379ecc3c2e43c36061b73469f7a261f8d # v1.8.5
+        with:
+          llm_url: ${{ secrets.OCR_LLM_URL }}
+          llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
+          llm_model: ${{ vars.OCR_LLM_MODEL }}
+          llm_use_anthropic: ${{ vars.OCR_LLM_USE_ANTHROPIC }}
+          github_token: ${{ github.token }}
+          ocr_version: "1.8.5"
+          language: "中文"
+          llm_timeout: "120"
+          review_concurrency: "4"
+          background: ${{ github.event.pull_request.title }}
+          upload_artifacts: "false"
+          sticky_summary: "true"
+          incremental: "false"
+          incremental_overlap_threshold: "0.6"
+          review_comment_batch_size: "25"
+          route_severity_below: low
+          route_categories: style,documentation
+
+      - name: Surface incomplete comment publication
+        if: >-
+          always()
+          && steps.ocr.outcome == 'success'
+          && steps.ocr.outputs.comments_failed != ''
+          && steps.ocr.outputs.comments_failed != '0'
+        env:
+          FAILED_COMMENT_COUNT: ${{ steps.ocr.outputs.comments_failed }}
+        run: |
+          echo "::error::OpenCodeReview could not publish ${FAILED_COMMENT_COUNT} generated comment(s)."
+          exit 1

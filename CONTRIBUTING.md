@@ -8,10 +8,32 @@ This repository uses a human-governed, AI-assisted development model. AI may acc
 |---|---|---|
 | Intent | Human decision owner | Issue change contract and acceptance examples |
 | Implementation | Human contributor or AI agent | Pull-request diff and implementation tests |
-| Verification | Repository-owned harness and CI | Required status checks and contract results |
-| Release | Human maintainer | Protected-branch merge record |
+| Verification | Repository-owned harness and CI | Expected CI summary and contract results |
+| Release | Human maintainer | Pull-request merge record |
 
 One person may participate in more than one activity, but implementation never becomes its own independent approval. AI-generated review is advisory and cannot replace the human decision owner or maintainer.
+
+## Agent Method and Repository Authority
+
+AI-led development uses [Superpowers](https://github.com/obra/superpowers) as the standard working method. Its skills
+provide the behavioral workflow: clarify intent, design and plan when appropriate, implement with tests, debug from
+evidence, review changes, verify fresh results, and prepare a branch for delivery.
+
+The repository remains the authority over outcomes. Superpowers does not replace the change contract, risk model,
+architecture invariants, repository commands, CI, human review, or release decision. In particular:
+
+| Concern | Authority |
+|---|---|
+| How the agent plans, implements, debugs, and checks its work | Applicable Superpowers skills |
+| Product intent, acceptance examples, non-goals, and risk acceptance | Human-confirmed change contract |
+| Architecture, contracts, security, and other enforceable invariants | Repository files, `uv run poe verify`, and the pinned central CI Harness |
+| Completion-stage advisory code review | Repository local review lane when supported; otherwise Superpowers review; optional PR review |
+| Merge and release readiness | Human maintainer |
+
+Do not duplicate every Superpowers checklist in repository documentation or turn its prescribed rituals into Harness
+checks. Conversely, do not cite completion of a Superpowers workflow as proof that repository checks passed. A host
+without Superpowers may use the lifecycle below as a fallback, but the contributor must disclose that the standard
+agent method was unavailable.
 
 ## Change Contract
 
@@ -48,83 +70,92 @@ Explicit human approval is required before implementation when a change affects 
 
 R2 changes require maintainer review. Use an ADR when the decision is durable, costly to reverse, or changes an invariant.
 
-## GitHub Flow
+## Local Development Lifecycle
 
-`main` is protected and must remain releasable.
+The end-to-end path uses GitHub Flow while keeping intent, deterministic verification, AI review, and release
+authority separate:
 
-1. Confirm the change contract and risk class.
-2. Create a short-lived branch from current `main`, such as `feat/<topic>`, `fix/<topic>`, or `chore/<topic>`.
-3. Make the smallest coherent change. Use `uv run poe check` for fast local feedback.
-4. Run `uv run poe harness` before requesting review.
-5. Open a pull request to `main` using the repository template. Draft pull requests are encouraged for early human decisions.
-6. Resolve required checks and human review without weakening the oracle to fit the implementation.
-7. Squash-merge with a Conventional Commit pull-request title.
+1. Confirm the change contract, acceptance examples, non-goals, risk class, and human decision owner. Stop for
+   explicit human approval before any R2 implementation.
+2. Update local `main`, then create a short-lived branch such as `feat/<topic>`, `fix/<topic>`, or `chore/<topic>`.
+3. Use the applicable Superpowers skills to design or plan at the scale of the change, implement the smallest coherent
+   solution, add focused tests, and debug failures from evidence. Use `uv run poe check` for fast feedback while
+   editing, and commit coherent branch checkpoints when useful.
+4. Use Superpowers verification-before-completion with `uv run poe verify` as the required fresh command before
+   handoff or pull-request updates. This remains the local deterministic oracle.
+5. Superpowers process reviews may be used for risky intermediate changes. At final completion in Codex, avoid an
+   additional generic AI review of the same diff and allow the trusted project Stop hook to provide the standard final
+   pass: when it sees a new repository fingerprint, let it verify the pinned OCR command and request a review-only
+   continuation with exact branch/workspace commands. In a host without that trusted completion hook, use the
+   applicable Superpowers review skill before handoff instead.
+6. Triage each material local finding against the confirmed intent and contracts. The review continuation reports
+   findings but does not edit, commit, or push. Apply an accepted fix only in a subsequent implementation pass; ask
+   the human decision owner first if it broadens scope or exposes an R2 choice.
+7. After a fix, use `check` while iterating, then rerun `verify`. The changed fingerprint triggers another local
+   review request before handoff.
+8. Push the branch and open or update a pull request to `main` using the repository template. Draft pull requests are
+   encouraged for unresolved human decisions.
+9. Resolve the expected deterministic CI, human review, and—when separately enabled—the automatic PR advisory
+   review. Do not weaken an oracle merely to fit the implementation.
+10. Use the Superpowers branch-finishing workflow only to prepare or update the pull request. It does not authorize a
+    local merge, branch discard, direct push to `main`, release, or deployment. A human maintainer squash-merges with
+    a Conventional Commit pull-request title only after expected evidence and approvals are complete. Treat `main`
+    as releasable even when the GitHub plan does not enforce that convention.
 
-## GitHub Control Plane
+### Local Codex Completion Review
 
-`repo-bootstrap` renders CODEOWNERS and idempotently configures repository merge settings and the protected `main` ruleset. Select the governance profile that matches the actual team:
+Install OpenCodeReview 1.8.5 and trust the exact project hook through `/hooks` as described in
+[README.md](README.md#create-a-repository). For each new changed-work fingerprint, `.codex/hooks.json` invokes the
+repository-owned Stop handler. It emits exact OpenCodeReview commands for whichever scopes apply:
 
-- `solo-safe` protects required checks and history without requiring an impossible self-approval;
-- `team` requires code-owner review and approval from someone other than the last pusher. Declare at least two
-  eligible human reviewers so a maintainer-authored pull request still has an independent reviewer;
-- `high-assurance` requires two non-author approvals, code-owner review, and fresh reviews after changes. Declare at
-  least three eligible humans so any one of them may author a pull request without locking the merge path.
+- committed branch changes from `origin/main` to `HEAD`, falling back to local `main` when necessary;
+- the current workspace, including tracked and untracked changes.
 
-For `team` and `high-assurance`, `--eligible-reviewers` is mandatory. When CODEOWNERS are individual users, the
-command also requires at least two or three distinct `--maintainer` handles respectively. An organization team may
-stand in for those individual handles, but its eligible reviewer count must be explicitly declared; preflight still
-verifies that the team exists, is visible, and has write access to the repository.
+Because OCR 1.8.5 excludes deleted files from its reviewable list, the continuation also receives root-anchored Git
+commands that enumerate and inspect deletions directly.
 
-Start with `solo-safe` unless the independent reviewer capacity already exists. Always inspect a dry-run first:
+The delegate selects reviewable files and auto-discovers `.opencodereview` rules; it does not call an OCR-hosted model.
+The current Codex session is the read-only reviewer, so this lane needs no separate OCR LLM URL, model name, or API
+token. It is workstation-orchestrated rather than offline: the active Codex account and organization data controls
+still apply to source/context processing. The handler validates the pinned CLI, and the continuation uses
+`OCR_NO_UPDATE=1`; unchanged fingerprints are not requested again. Deterministic checks still run independently.
 
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile solo-safe \
-  --maintainer @MAINTAINER \
-  --dry-run
-```
+The Stop hook executes only in a trusted project and after the developer trusts its exact definition. Codex or an
+administrator can disable it, and development outside that configured client can bypass it. It is therefore a team
+workflow guardrail—not a security boundary, required merge check, independent approval, or substitute for human R2
+decisions. Its loop guard records that the continuation returned for an unchanged fingerprint; it cannot prove that
+the agent followed the review instructions or that the findings were complete. A zero-finding review is useful
+evidence, not approval.
 
-A two-person team uses both personal CODEOWNERS and an explicit capacity declaration:
+This default assumes a trusted developer workstation. The hook does not deliberately invoke project build, test, or
+application commands, but it fingerprints through Git outside the Codex sandbox. The selected Python, Git, OCR and
+Node installations, `PATH`, system/global/local Git configuration and filters, and the worktree's Git metadata are
+therefore machine prerequisites, not security boundaries enforced by this template.
 
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile team \
-  --maintainer @ALICE \
-  --maintainer @BOB \
-  --eligible-reviewers 2 \
-  --dry-run
-```
+## GitHub Flow and the Soft PR Gate
 
-For an organization team, use `--maintainer @ORG/TEAM --eligible-reviewers 2` (or `3` for `high-assurance`). The
-number is a human declaration of genuinely available reviewers, not a way to bypass GitHub permission checks.
+The lifecycle above is the repository's GitHub Flow: normal product work reaches `main` through a short-lived branch
+and pull request. `uv run pre-commit install` installs a local pre-push guard that rejects the usual direct push to
+`main`. Contributors and AI agents must not use `--no-verify` to bypass it without explicit human authorization for
+that exception.
 
-Before applying, merge the CI workflow and let the `CI / required` check run on `main`. During `--apply`, bootstrap
-discovers that check's actual GitHub Actions integration ID and binds the required status to it. If no such check run
-exists, bootstrap stops during read-only preflight without writing CODEOWNERS or changing repository settings; it
-never guesses a global App ID or leaves the required context open to another status provider.
+On a pull request, CI validates the Conventional Commit title and invokes the central Harness Action at a full commit
+SHA. That action runs `uv run poe verify` and the centrally owned architecture, frontend-boundary, security, and
+supply-chain checks against this repository. `CI / required` is the single stable summary result maintainers inspect
+before squash-merging. The local OpenCodeReview pass and optional PR OpenCodeReview pass are advisory; human review
+still owns intent, risk, and merge readiness.
 
-Applying changes GitHub repository state and requires explicit human approval plus an authorized token. A
-fine-grained token needs repository **Metadata: read** and **Administration: write**; organization-team CODEOWNERS
-also need organization **Members: read**. A classic token needs `repo` and, for teams, `read:org`. Rulesets work for
-public repositories on GitHub Free and for private repositories on GitHub Pro, Team, or Enterprise. Provide the token
-through the environment without writing it into a command, file, or shell history:
+These are repository conventions, not a security boundary. A developer can bypass local hooks, and without GitHub
+branch protection or a Ruleset the hosting service can still accept a direct push or merge with failing CI. The
+template states that limitation plainly and does not add a brittle CI job that tries to infer a direct push after it
+has already happened.
 
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile solo-safe \
-  --maintainer @MAINTAINER \
-  --apply
-```
+## Optional Server-Side Enforcement
 
-All preflight calls are read-only. Mutation then proceeds in named stages: `codeowners`, `repository-settings`, and
-`ruleset`. A failure prints machine-readable JSON listing completed and uncompleted stages; no cross-system rollback
-is claimed. Inspect that report, correct the cause, and rerun the same convergent command.
-
-Commit the rendered `.github/CODEOWNERS` through the normal pull-request flow. Rerun the command when the chosen
-profile or maintainer set changes. Do not treat possession of a token as approval to apply the plan.
+Server-side enforcement is outside the default template. If the repository's GitHub plan and team model support it,
+the existing `uv run poe repo-bootstrap bootstrap ...` command can preview and apply CODEOWNERS, merge settings, and
+a `main` Ruleset. `--apply` mutates external repository state and always requires explicit human authorization for
+the exact repository, profile, and maintainers. Teams that do not enable it continue to use the soft PR gate above.
 
 ## Agent Identity Boundary
 
@@ -148,6 +179,34 @@ AI review may search for omissions, inconsistent assumptions, and cross-file ris
 
 A green check is necessary but not sufficient approval. A human approval without required green checks is also insufficient.
 
+## Automatic Advisory Review
+
+`.github/workflows/open-code-review.yml` is the optional CI heuristic lane in the completion flow. It is distinct from
+the local Codex Stop-hook review and is disabled by default in generated repositories. When `OCR_ENABLED=true`,
+opening, reopening, marking ready, or updating a non-Draft same-repository PR against `main` triggers OpenCodeReview.
+Dependabot and external fork PRs are excluded from automatic model spending. Required CI and the advisory review may
+run concurrently after work is offered for review; OpenCodeReview is deliberately not executed by the local
+deterministic harness.
+
+The workflow reads the trusted base branch, fetches the proposed Git objects without executing PR code, and sends the
+diff plus relevant repository context to the configured LLM provider. Enabling it is an R2 data and provider decision:
+use a provider approved for the repository's confidentiality level and a dedicated credential with an appropriate
+quota. GitHub Actions cannot reuse the developer's Codex session or local OCR setup. Configuration names and
+activation order are documented in [README.md](README.md#enable-automatic-pr-advisory-review).
+
+OpenCodeReview submits `COMMENT` reviews and a sticky summary. It does not approve, request changes, fix code, or own a
+merge decision. Findings do not fail the check, and provider or action availability is not part of `CI / required`.
+Each eligible PR update publishes a new pass over files OCR considers reviewable; OCR 1.8.5 excludes deleted files,
+so removal consequences remain part of deterministic checks and human diff review. Earlier inline comments remain as
+review history rather than suppressing a new finding merely because it touches the same lines.
+The human reviewer validates each material finding against intent, contracts, and risk. A valid fix remains subject to
+the confirmed change scope, must rerun `uv run poe verify`, and needs new human confirmation if it exposes an R2
+decision. A false positive may be resolved with a concise explanation; zero findings is evidence, not approval.
+
+The `team` and `high-assurance` governance profiles require review-thread resolution, so their normal human workflow
+also closes or explains OpenCodeReview inline threads. This does not turn the bot into an eligible approving reviewer.
+Set `OCR_ENABLED=false` to stop external model calls without weakening deterministic CI.
+
 ## Changing the Harness
 
 The harness governs artifacts, not contributor behavior. A new blocking rule must:
@@ -166,7 +225,16 @@ These are the stable public interfaces:
 
 ```bash
 uv run poe check       # fast local feedback
-uv run poe harness     # complete required verification
+uv run poe verify      # complete local verification before handoff
 ```
 
-`repo-bootstrap` is the stable GitHub-governance entrypoint described above. Targeted Poe tasks and scripts may evolve; CI and contributor documentation should call the stable interfaces.
+`uv run poe harness` remains a compatibility alias for `verify`; new automation and documentation must use the
+explicit command names. Central checker implementation and its self-tests live behind the pinned
+`jarlor/fastapi-vue-harness` CI Action, so generated repositories do not inherit the checker test suite or a Harness
+application dependency.
+
+The local advisory review is Stop-hook driven and intentionally has no Poe task; it remains outside these
+deterministic commands.
+
+`repo-bootstrap` is an optional GitHub-governance entrypoint, not part of the baseline setup. Targeted Poe tasks and
+scripts may evolve; CI and contributor documentation should call the stable interfaces.

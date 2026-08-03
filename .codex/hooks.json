@@ -1,0 +1,18 @@
+{
+  "description": "Require one local OpenCodeReview delegation pass before Codex hands off a changed repository state.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I -S -c 'exec(\"import hashlib,io,json,runpy,sys\\nfrom pathlib import Path\\nfailure='\"'\"'Trusted local review artifacts failed integrity checks. Inspect .codex/hooks/stop_review.py and .opencodereview/, then re-trust the exact hook with /hooks.'\"'\"'\\nexpected={'\"'\"'.codex/hooks/stop_review.py'\"'\"': '\"'\"'029b0d741f8c691395f07fb1724837a3c6873298a81e49325725f56accf3b47e'\"'\"', '\"'\"'.opencodereview/review-rules.md'\"'\"': '\"'\"'9ebce131b41d6307810bdd3a4678ef23cc241067e1295fdc0c8b0965b0fe3456'\"'\"', '\"'\"'.opencodereview/rule.json'\"'\"': '\"'\"'47d79f4f98173f96d7679c0f475a7aba3c524b1a82bef30e6f7ccaeb58ba0bad'\"'\"'}\\nraw=sys.stdin.read()\\ntry:\\n data=json.loads(raw)\\n cwd=Path(data.get('\"'\"'cwd'\"'\"') or Path.cwd()).resolve(strict=True)\\n root=next((p for p in (cwd,*cwd.parents) if (p/'\"'\"'.git'\"'\"').exists()),None)\\n if root is None: raise RuntimeError('\"'\"'root'\"'\"')\\n actual={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in expected}\\n if actual!=expected: raise RuntimeError('\"'\"'digest'\"'\"')\\n sys.stdin=io.StringIO(raw)\\n runpy.run_path(str(root/'\"'\"'.codex/hooks/stop_review.py'\"'\"'),run_name='\"'\"'__main__'\"'\"')\\nexcept Exception:\\n print(json.dumps({'\"'\"'continue'\"'\"':False,'\"'\"'stopReason'\"'\"':failure},separators=('\"'\"','\"'\"','\"'\"':'\"'\"')))\")'",
+            "commandWindows": "py -3 -I -S -c \"exec(\\\"import hashlib,io,json,runpy,sys\\nfrom pathlib import Path\\nfailure='Trusted local review artifacts failed integrity checks. Inspect .codex/hooks/stop_review.py and .opencodereview/, then re-trust the exact hook with /hooks.'\\nexpected={'.codex/hooks/stop_review.py': '029b0d741f8c691395f07fb1724837a3c6873298a81e49325725f56accf3b47e', '.opencodereview/review-rules.md': '9ebce131b41d6307810bdd3a4678ef23cc241067e1295fdc0c8b0965b0fe3456', '.opencodereview/rule.json': '47d79f4f98173f96d7679c0f475a7aba3c524b1a82bef30e6f7ccaeb58ba0bad'}\\nraw=sys.stdin.read()\\ntry:\\n data=json.loads(raw)\\n cwd=Path(data.get('cwd') or Path.cwd()).resolve(strict=True)\\n root=next((p for p in (cwd,*cwd.parents) if (p/'.git').exists()),None)\\n if root is None: raise RuntimeError('root')\\n actual={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in expected}\\n if actual!=expected: raise RuntimeError('digest')\\n sys.stdin=io.StringIO(raw)\\n runpy.run_path(str(root/'.codex/hooks/stop_review.py'),run_name='__main__')\\nexcept Exception:\\n print(json.dumps({'continue':False,'stopReason':failure},separators=(',',':')))\\\")\"",
+            "timeout": 30,
+            "statusMessage": "Preparing local OpenCodeReview delegation"
+          }
+        ]
+      }
+    ]
+  }
+}

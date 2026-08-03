@@ -20,7 +20,7 @@ Risk definitions and approval requirements are authoritative in `CONTRIBUTING.md
 
 ## Verification
 
-Record the result of `uv run poe harness`, plus any focused manual, contract, migration, or rollout verification. Explain any check that was not run; do not replace CI evidence with a checkbox.
+Record the result of `uv run poe verify`, plus any focused manual, contract, migration, or rollout verification. Explain any check that was not run; do not replace CI evidence with a checkbox.
 
 ## Human Review Focus
 

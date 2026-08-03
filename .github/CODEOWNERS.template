@@ -7,6 +7,7 @@
 /.github/ __MAINTAINERS__
 /.codex/ __MAINTAINERS__
 /.opencodereview/ __MAINTAINERS__
+/.pre-commit-config.yaml __MAINTAINERS__
 /AGENTS.md __MAINTAINERS__
 /ARCHITECTURE.md __MAINTAINERS__
 /CONTRIBUTING.md __MAINTAINERS__

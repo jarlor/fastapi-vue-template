@@ -259,8 +259,15 @@ def test_repo_local_ocr_is_not_used(tmp_path: Path) -> None:
     repo = seed_repository(tmp_path)
     write(repo / "workspace.py", "WORKSPACE = True\n")
     bin_dir, log_path = make_fake_ocr(repo)
+    installed_git = shutil.which("git")
+    assert installed_git
+    git_only = tmp_path / "git-only"
+    git_only.mkdir()
+    (git_only / Path(installed_git).name).symlink_to(installed_git)
+    env = fake_environment(bin_dir, log_path)
+    env["PATH"] = os.pathsep.join((str(bin_dir), str(git_only)))
 
-    response = invoke_hook(repo, env=fake_environment(bin_dir, log_path))
+    response = invoke_hook(repo, env=env)
 
     assert response.get("continue") is False
     assert "OpenCodeReview is missing" in response.get("stopReason", "")

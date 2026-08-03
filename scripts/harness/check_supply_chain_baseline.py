@@ -32,6 +32,10 @@ OPEN_CODE_REVIEW_GUIDANCE = ".opencodereview/review-rules.md"
 OPEN_CODE_REVIEW_JOB = "advisory-review"
 OPEN_CODE_REVIEW_RULE = ".opencodereview/rule.json"
 OPEN_CODE_REVIEW_WORKFLOW = ".github/workflows/open-code-review.yml"
+PRE_COMMIT_CONFIG = ".pre-commit-config.yaml"
+PRE_PUSH_POLICY_ENTRY = "uv run python scripts/governance/check_push_policy.py"
+PRE_PUSH_POLICY_HOOK = "protect-main-push"
+PRE_PUSH_POLICY_SCRIPT = "scripts/governance/check_push_policy.py"
 LOCAL_REVIEW_HOOK_CONFIG = ".codex/hooks.json"
 LOCAL_REVIEW_HOOK_SCRIPT = ".codex/hooks/stop_review.py"
 LOCAL_REVIEW_GIT_ATTRIBUTES = (
@@ -53,6 +57,7 @@ OPEN_CODE_REVIEW_EVENTS = {"opened", "synchronize", "reopened", "ready_for_revie
 OPEN_CODE_REVIEW_RULE_CONFIG = {
     "include": [
         ".gitattributes",
+        ".pre-commit-config.yaml",
         ".github/CODEOWNERS",
         ".github/CODEOWNERS.template",
         ".github/pull_request_template.md",
@@ -62,6 +67,7 @@ OPEN_CODE_REVIEW_RULE_CONFIG = {
         "CONTRIBUTING.md",
         "README.md",
         "docs/adr/**/*.md",
+        "scripts/governance/**/*.py",
         "tests/**/*.py",
         "harness_tests/**/*.py",
         "**/*.test.{js,jsx,ts,tsx}",
@@ -451,6 +457,44 @@ def check_open_code_review_rules(root: Path) -> list[Violation]:
     return violations
 
 
+def check_pre_push_policy(root: Path) -> list[Violation]:
+    """Require the versioned, locally installed soft guard for main pushes."""
+    config_path = root / PRE_COMMIT_CONFIG
+    script_path = root / PRE_PUSH_POLICY_SCRIPT
+    if not config_path.is_file() or config_path.is_symlink():
+        return [Violation(config_path, "local pre-commit configuration is required")]
+    if not script_path.is_file() or script_path.is_symlink():
+        return [Violation(script_path, "local main-push policy script is required")]
+
+    config = load_yaml(config_path)
+    if not isinstance(config, dict):
+        return [Violation(config_path, "pre-commit configuration must be a mapping")]
+
+    install_types = config.get("default_install_hook_types", [])
+    repositories = config.get("repos", [])
+    if not isinstance(install_types, list) or not isinstance(repositories, list):
+        return [Violation(config_path, "must install the reviewed local pre-push guard for main")]
+    hooks = [
+        hook
+        for repository in repositories
+        if isinstance(repository, dict) and repository.get("repo") == "local"
+        for hook in (repository.get("hooks", []) if isinstance(repository.get("hooks", []), list) else [])
+        if isinstance(hook, dict) and hook.get("id") == PRE_PUSH_POLICY_HOOK
+    ]
+    expected_hook = {
+        "id": PRE_PUSH_POLICY_HOOK,
+        "entry": PRE_PUSH_POLICY_ENTRY,
+        "language": "system",
+        "stages": ["pre-push"],
+        "always_run": True,
+        "pass_filenames": False,
+    }
+    valid_hook = len(hooks) == 1 and all(hooks[0].get(key) == value for key, value in expected_hook.items())
+    if {"pre-commit", "pre-push"}.issubset(install_types) and valid_hook:
+        return []
+    return [Violation(config_path, "must install the reviewed local pre-push guard for main")]
+
+
 def check_local_review_hook(root: Path) -> list[Violation]:
     """Require the trusted Codex Stop hook and bind it to the reviewed handler bytes."""
     config_path = root / LOCAL_REVIEW_HOOK_CONFIG
@@ -585,6 +629,7 @@ def check_supply_chain_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     violations: list[Violation] = []
     violations.extend(check_lockfiles(root))
     violations.extend(check_workflows(root))
+    violations.extend(check_pre_push_policy(root))
     violations.extend(check_open_code_review_workflow(root))
     violations.extend(check_open_code_review_rules(root))
     violations.extend(check_local_review_hook(root))

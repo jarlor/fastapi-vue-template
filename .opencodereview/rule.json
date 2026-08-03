@@ -1,6 +1,7 @@
 {
   "include": [
     ".gitattributes",
+    ".pre-commit-config.yaml",
     ".github/CODEOWNERS",
     ".github/CODEOWNERS.template",
     ".github/pull_request_template.md",
@@ -10,6 +11,7 @@
     "CONTRIBUTING.md",
     "README.md",
     "docs/adr/**/*.md",
+    "scripts/governance/**/*.py",
     "tests/**/*.py",
     "harness_tests/**/*.py",
     "**/*.test.{js,jsx,ts,tsx}",

@@ -39,6 +39,8 @@ Use Poe tasks as the public interface. Scripts under `scripts/harness/` are impl
 
 - Run `uv run poe check` for fast feedback while editing.
 - Run `uv run poe harness` before handing work to a reviewer or updating a pull request.
+- Push a short-lived branch and use a pull request for changes to `main`. Never push directly to `main` or bypass
+  the local pre-push guard unless the human decision owner explicitly authorizes that exact exception.
 - When the trusted project Stop hook sees a new changed-work fingerprint, let it prepare the applicable committed
   branch, workspace, and deletion scopes and follow its requested read-only Codex review. The review continuation may
   inspect and report; it must not edit, commit, push, or fix its own findings. Handle an accepted finding in a

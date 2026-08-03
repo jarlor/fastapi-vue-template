@@ -36,6 +36,9 @@ npm --prefix src/frontend ci
 uv run pre-commit install
 ```
 
+The last command installs both the normal commit checks and a local pre-push guard. The guard rejects the usual
+direct push to `main` and tells the contributor to use a short-lived branch and pull request instead.
+
 Install the pinned OpenCodeReview delegate once on each development machine:
 
 ```bash
@@ -57,22 +60,11 @@ trusted digests and require another inspection and `/hooks` trust decision.
 The template intentionally does not choose a software license for the generated product. Select and add the product's
 license before distributing it outside your organization; absence of a license is not an open-source grant.
 
-Preview the GitHub control plane before applying it:
-
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile solo-safe \
-  --maintainer @MAINTAINER \
-  --dry-run
-```
-
-After the human maintainer confirms the plan, let `CI / required` run once on `main`, then rerun the command with
-`--apply` and an authorized `GH_TOKEN`. A read-only preflight verifies repository access, CODEOWNER identities and
-write permissions, reviewer capacity, Rulesets availability, and the real GitHub Actions integration behind the
-required check before anything is changed. The command then renders CODEOWNERS and converges the protected `main`
-Ruleset. Team profiles, token permissions, and recovery behavior are documented in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+The default template does not change GitHub repository permissions, Rulesets, or branch protection. Its Git policy is
+deliberately soft: local hooks can be bypassed, and a green `CI / required` result is evidence that maintainers agree
+to require before merging rather than a GitHub-enforced merge lock. This keeps the baseline useful for free and
+private repositories without pretending that repository files can enforce server-side permissions. Optional
+server-side enforcement is described in [CONTRIBUTING.md](CONTRIBUTING.md#optional-server-side-enforcement).
 
 ### Enable Automatic PR Advisory Review
 
@@ -147,7 +139,8 @@ AI agents start with [AGENTS.md](AGENTS.md). Human contributors start with [CONT
 - The API uses a `create_app()` factory and the versioned `/api/v1` prefix.
 - Successful responses use the shared `{ code, success, data, message }` envelope.
 - Non-sensitive defaults live in `config.yaml`; secrets belong in the environment.
-- `main` is the protected, releasable branch. Work reaches it through short-lived branches and pull requests.
+- `main` is treated as the releasable branch. The local workflow sends changes through short-lived branches and pull
+  requests; server-side protection is optional and is not configured by the template.
 - Dependabot keeps `uv`, npm, and pinned GitHub Actions dependencies visible through reviewable pull requests.
 
 For the reasons behind these boundaries, see [ARCHITECTURE.md](ARCHITECTURE.md).

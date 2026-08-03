@@ -49,6 +49,12 @@ def copy_bytes(root: Path, relative: str) -> Path:
 def seed_repo(root: Path) -> None:
     """Create a minimal compliant repository."""
     write_file(root, ".gitattributes", (ROOT / ".gitattributes").read_text())
+    write_file(root, ".pre-commit-config.yaml", (ROOT / ".pre-commit-config.yaml").read_text())
+    write_file(
+        root,
+        "scripts/governance/check_push_policy.py",
+        (ROOT / "scripts/governance/check_push_policy.py").read_text(),
+    )
     write_file(root, "uv.lock")
     write_file(
         root,
@@ -127,6 +133,15 @@ class TestSupplyChainBaseline:
         messages = messages_for(tmp_path)
 
         assert any("at least one GitHub Actions workflow is required" in message for message in messages)
+
+    def test_requires_the_local_main_push_guard(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        config = tmp_path / ".pre-commit-config.yaml"
+        config.write_text(config.read_text().replace("stages: [pre-push]", "stages: [manual]"))
+
+        messages = messages_for(tmp_path)
+
+        assert any("must install the reviewed local pre-push guard for main" in message for message in messages)
 
     def test_requires_dependency_update_coverage(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)

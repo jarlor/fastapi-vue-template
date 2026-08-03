@@ -8,8 +8,8 @@ This repository uses a human-governed, AI-assisted development model. AI may acc
 |---|---|---|
 | Intent | Human decision owner | Issue change contract and acceptance examples |
 | Implementation | Human contributor or AI agent | Pull-request diff and implementation tests |
-| Verification | Repository-owned harness and CI | Required status checks and contract results |
-| Release | Human maintainer | Protected-branch merge record |
+| Verification | Repository-owned harness and CI | Expected CI summary and contract results |
+| Release | Human maintainer | Pull-request merge record |
 
 One person may participate in more than one activity, but implementation never becomes its own independent approval. AI-generated review is advisory and cannot replace the human decision owner or maintainer.
 
@@ -68,10 +68,10 @@ authority separate:
    review request before handoff.
 8. Push the branch and open or update a pull request to `main` using the repository template. Draft pull requests are
    encouraged for unresolved human decisions.
-9. Resolve the required deterministic CI, human review, and—when separately enabled—the automatic PR advisory
+9. Resolve the expected deterministic CI, human review, and—when separately enabled—the automatic PR advisory
    review. Do not weaken an oracle merely to fit the implementation.
-10. A human maintainer squash-merges with a Conventional Commit pull-request title only after required evidence and
-    approvals are complete. `main` remains protected and releasable.
+10. A human maintainer squash-merges with a Conventional Commit pull-request title only after expected evidence and
+    approvals are complete. Treat `main` as releasable even when the GitHub plan does not enforce that convention.
 
 ### Local Codex Completion Review
 
@@ -103,77 +103,28 @@ application commands, but it fingerprints through Git outside the Codex sandbox.
 Node installations, `PATH`, system/global/local Git configuration and filters, and the worktree's Git metadata are
 therefore machine prerequisites, not security boundaries enforced by this template.
 
-## GitHub Flow
+## GitHub Flow and the Soft PR Gate
 
-The lifecycle above is the repository's GitHub Flow: all product work reaches protected `main` through a short-lived
-branch and pull request. The local review improves the work before it is offered for review; required CI and human
-merge authority remain on GitHub.
+The lifecycle above is the repository's GitHub Flow: normal product work reaches `main` through a short-lived branch
+and pull request. `uv run pre-commit install` installs a local pre-push guard that rejects the usual direct push to
+`main`. Contributors and AI agents must not use `--no-verify` to bypass it without explicit human authorization for
+that exception.
 
-## GitHub Control Plane
+On a pull request, CI validates the Conventional Commit title and runs the complete harness. `CI / required` is the
+single stable summary result maintainers inspect before squash-merging. The local OpenCodeReview pass and optional PR
+OpenCodeReview pass are advisory; human review still owns intent, risk, and merge readiness.
 
-`repo-bootstrap` renders CODEOWNERS and idempotently configures repository merge settings and the protected `main` ruleset. Select the governance profile that matches the actual team:
+These are repository conventions, not a security boundary. A developer can bypass local hooks, and without GitHub
+branch protection or a Ruleset the hosting service can still accept a direct push or merge with failing CI. The
+template states that limitation plainly and does not add a brittle CI job that tries to infer a direct push after it
+has already happened.
 
-- `solo-safe` protects required checks and history without requiring an impossible self-approval;
-- `team` requires code-owner review and approval from someone other than the last pusher. Declare at least two
-  eligible human reviewers so a maintainer-authored pull request still has an independent reviewer;
-- `high-assurance` requires two non-author approvals, code-owner review, and fresh reviews after changes. Declare at
-  least three eligible humans so any one of them may author a pull request without locking the merge path.
+## Optional Server-Side Enforcement
 
-For `team` and `high-assurance`, `--eligible-reviewers` is mandatory. When CODEOWNERS are individual users, the
-command also requires at least two or three distinct `--maintainer` handles respectively. An organization team may
-stand in for those individual handles, but its eligible reviewer count must be explicitly declared; preflight still
-verifies that the team exists, is visible, and has write access to the repository.
-
-Start with `solo-safe` unless the independent reviewer capacity already exists. Always inspect a dry-run first:
-
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile solo-safe \
-  --maintainer @MAINTAINER \
-  --dry-run
-```
-
-A two-person team uses both personal CODEOWNERS and an explicit capacity declaration:
-
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile team \
-  --maintainer @ALICE \
-  --maintainer @BOB \
-  --eligible-reviewers 2 \
-  --dry-run
-```
-
-For an organization team, use `--maintainer @ORG/TEAM --eligible-reviewers 2` (or `3` for `high-assurance`). The
-number is a human declaration of genuinely available reviewers, not a way to bypass GitHub permission checks.
-
-Before applying, merge the CI workflow and let the `CI / required` check run on `main`. During `--apply`, bootstrap
-discovers that check's actual GitHub Actions integration ID and binds the required status to it. If no such check run
-exists, bootstrap stops during read-only preflight without writing CODEOWNERS or changing repository settings; it
-never guesses a global App ID or leaves the required context open to another status provider.
-
-Applying changes GitHub repository state and requires explicit human approval plus an authorized token. A
-fine-grained token needs repository **Metadata: read** and **Administration: write**; organization-team CODEOWNERS
-also need organization **Members: read**. A classic token needs `repo` and, for teams, `read:org`. Rulesets work for
-public repositories on GitHub Free and for private repositories on GitHub Pro, Team, or Enterprise. Provide the token
-through the environment without writing it into a command, file, or shell history:
-
-```bash
-uv run poe repo-bootstrap bootstrap \
-  --repository OWNER/REPOSITORY \
-  --profile solo-safe \
-  --maintainer @MAINTAINER \
-  --apply
-```
-
-All preflight calls are read-only. Mutation then proceeds in named stages: `codeowners`, `repository-settings`, and
-`ruleset`. A failure prints machine-readable JSON listing completed and uncompleted stages; no cross-system rollback
-is claimed. Inspect that report, correct the cause, and rerun the same convergent command.
-
-Commit the rendered `.github/CODEOWNERS` through the normal pull-request flow. Rerun the command when the chosen
-profile or maintainer set changes. Do not treat possession of a token as approval to apply the plan.
+Server-side enforcement is outside the default template. If the repository's GitHub plan and team model support it,
+the existing `uv run poe repo-bootstrap bootstrap ...` command can preview and apply CODEOWNERS, merge settings, and
+a `main` Ruleset. `--apply` mutates external repository state and always requires explicit human authorization for
+the exact repository, profile, and maintainers. Teams that do not enable it continue to use the soft PR gate above.
 
 ## Agent Identity Boundary
 
@@ -249,4 +200,5 @@ uv run poe harness     # complete required verification
 The local advisory review is Stop-hook driven and intentionally has no Poe task; it remains outside these
 deterministic commands.
 
-`repo-bootstrap` is the stable GitHub-governance entrypoint described above. Targeted Poe tasks and scripts may evolve; CI and contributor documentation should call the stable interfaces.
+`repo-bootstrap` is an optional GitHub-governance entrypoint, not part of the baseline setup. Targeted Poe tasks and
+scripts may evolve; CI and contributor documentation should call the stable interfaces.

@@ -4,6 +4,28 @@ This file is the single repository contract for AI coding agents. It applies whe
 
 The allocation of human, implementation, verification, and release authority is defined in [CONTRIBUTING.md](CONTRIBUTING.md). Code boundaries are defined in [ARCHITECTURE.md](ARCHITECTURE.md). Do not duplicate or reinterpret those policies here.
 
+## Working Method
+
+Use the installed [Superpowers](https://github.com/obra/superpowers) plugin as the standard method for shaping,
+planning, implementing, debugging, reviewing, and finishing development work. Invoke its applicable skills rather
+than improvising an equivalent workflow. If Superpowers is unavailable in the current host, say so and follow the
+fallback lifecycle in `CONTRIBUTING.md`; do not claim that a Superpowers gate ran.
+
+Superpowers governs method, not authority or evidence. This repository contract takes precedence when the two
+intersect:
+
+- the confirmed change contract and R0/R1/R2 decision determine scope and required human decisions;
+- `ARCHITECTURE.md`, repository-owned contracts, tests, and harness checks determine acceptable artifacts;
+- `uv run poe harness` supplies completion evidence; a Superpowers verification step must use it before handoff;
+- when the trusted repository completion-review hook is available, it is the default final code review; otherwise use
+  the applicable Superpowers review skill before handoff. Do not stack equivalent reviews over the same final diff
+  unless the risk or a concrete finding justifies it;
+- only a human maintainer may approve, merge, release, accept protected risk, or authorize an irreversible action.
+
+Superpowers never grants permission to broaden intent, weaken an oracle, push directly to `main`, merge, deploy, or
+perform an R2 action. When a Superpowers instruction conflicts with one of those boundaries, preserve the boundary
+and report the conflict instead of silently choosing a weaker rule.
+
 ## Before Editing
 
 1. Read the linked issue or pull request and identify its intent, acceptance examples, non-goals, risk class, and human decision owner.

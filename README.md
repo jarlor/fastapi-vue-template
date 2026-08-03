@@ -8,6 +8,11 @@ The template is designed for teams that want AI to accelerate implementation wit
 
 Work separates intent, implementation, verification, and release authority so that an AI implementation cannot approve itself. The authoritative collaboration and risk model is defined in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+[Superpowers](https://github.com/obra/superpowers) is the standard behavioral workflow for AI-led development. It
+drives planning, implementation, debugging, verification, and branch completion; the repository Harness determines
+whether the resulting artifacts satisfy this project's architecture, contracts, security, and test expectations.
+Superpowers is installed in the developer's code-agent host rather than vendored into every generated repository.
+
 ## Technology
 
 | Surface | Technology |
@@ -35,6 +40,16 @@ uv sync --frozen
 npm --prefix src/frontend ci
 uv run pre-commit install
 ```
+
+Install Superpowers in each code-agent host used for AI-led development:
+
+- **Codex App or CLI:** open `/plugins`, search for `Superpowers`, and install the official plugin.
+- **Claude Code:** run `/plugin install superpowers@claude-plugins-official`.
+
+Restart or reload the host if it requests that step, then confirm that the Superpowers skills are available. Project
+files cannot install or trust a user-level plugin on someone else's behalf. If a contributor's host cannot run
+Superpowers, the repository lifecycle remains usable as a fallback, but the contributor must disclose that fact in
+the handoff or pull request.
 
 The last command installs both the normal commit checks and a local pre-push guard. The guard rejects the usual
 direct push to `main` and tells the contributor to use a short-lived branch and pull request instead.

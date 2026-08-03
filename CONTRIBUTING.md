@@ -13,6 +13,28 @@ This repository uses a human-governed, AI-assisted development model. AI may acc
 
 One person may participate in more than one activity, but implementation never becomes its own independent approval. AI-generated review is advisory and cannot replace the human decision owner or maintainer.
 
+## Agent Method and Repository Authority
+
+AI-led development uses [Superpowers](https://github.com/obra/superpowers) as the standard working method. Its skills
+provide the behavioral workflow: clarify intent, design and plan when appropriate, implement with tests, debug from
+evidence, review changes, verify fresh results, and prepare a branch for delivery.
+
+The repository remains the authority over outcomes. Superpowers does not replace the change contract, risk model,
+architecture invariants, repository commands, CI, human review, or release decision. In particular:
+
+| Concern | Authority |
+|---|---|
+| How the agent plans, implements, debugs, and checks its work | Applicable Superpowers skills |
+| Product intent, acceptance examples, non-goals, and risk acceptance | Human-confirmed change contract |
+| Architecture, contracts, security, and other enforceable invariants | Repository files and `uv run poe harness` |
+| Completion-stage advisory code review | Repository local review lane when supported; otherwise Superpowers review; optional PR review |
+| Merge and release readiness | Human maintainer |
+
+Do not duplicate every Superpowers checklist in repository documentation or turn its prescribed rituals into Harness
+checks. Conversely, do not cite completion of a Superpowers workflow as proof that repository checks passed. A host
+without Superpowers may use the lifecycle below as a fallback, but the contributor must disclose that the standard
+agent method was unavailable.
+
 ## Change Contract
 
 Start meaningful work with the [change issue form](.github/ISSUE_TEMPLATE/change.yml), or provide the same information in an existing issue:
@@ -56,11 +78,16 @@ authority separate:
 1. Confirm the change contract, acceptance examples, non-goals, risk class, and human decision owner. Stop for
    explicit human approval before any R2 implementation.
 2. Update local `main`, then create a short-lived branch such as `feat/<topic>`, `fix/<topic>`, or `chore/<topic>`.
-3. Make the smallest coherent change and add focused tests. Use `uv run poe check` for fast feedback while editing,
-   and commit coherent branch checkpoints when useful.
-4. Run `uv run poe harness` before handoff or pull-request updates. This remains the local deterministic oracle.
-5. When Codex reaches a stopping point with a new repository fingerprint, allow the trusted project Stop hook to
-   verify the pinned OCR command and request a review-only continuation with exact branch/workspace commands.
+3. Use the applicable Superpowers skills to design or plan at the scale of the change, implement the smallest coherent
+   solution, add focused tests, and debug failures from evidence. Use `uv run poe check` for fast feedback while
+   editing, and commit coherent branch checkpoints when useful.
+4. Use Superpowers verification-before-completion with `uv run poe harness` as the required fresh command before
+   handoff or pull-request updates. This remains the local deterministic oracle.
+5. Superpowers process reviews may be used for risky intermediate changes. At final completion in Codex, avoid an
+   additional generic AI review of the same diff and allow the trusted project Stop hook to provide the standard final
+   pass: when it sees a new repository fingerprint, let it verify the pinned OCR command and request a review-only
+   continuation with exact branch/workspace commands. In a host without that trusted completion hook, use the
+   applicable Superpowers review skill before handoff instead.
 6. Triage each material local finding against the confirmed intent and contracts. The review continuation reports
    findings but does not edit, commit, or push. Apply an accepted fix only in a subsequent implementation pass; ask
    the human decision owner first if it broadens scope or exposes an R2 choice.
@@ -70,8 +97,10 @@ authority separate:
    encouraged for unresolved human decisions.
 9. Resolve the expected deterministic CI, human review, and—when separately enabled—the automatic PR advisory
    review. Do not weaken an oracle merely to fit the implementation.
-10. A human maintainer squash-merges with a Conventional Commit pull-request title only after expected evidence and
-    approvals are complete. Treat `main` as releasable even when the GitHub plan does not enforce that convention.
+10. Use the Superpowers branch-finishing workflow only to prepare or update the pull request. It does not authorize a
+    local merge, branch discard, direct push to `main`, release, or deployment. A human maintainer squash-merges with
+    a Conventional Commit pull-request title only after expected evidence and approvals are complete. Treat `main`
+    as releasable even when the GitHub plan does not enforce that convention.
 
 ### Local Codex Completion Review
 

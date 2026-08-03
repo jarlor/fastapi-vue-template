@@ -57,7 +57,8 @@ R2 changes require maintainer review. Use an ADR when the decision is durable, c
 3. Make the smallest coherent change. Use `uv run poe check` for fast local feedback.
 4. Run `uv run poe harness` before requesting review.
 5. Open a pull request to `main` using the repository template. Draft pull requests are encouraged for early human decisions.
-6. Resolve required checks and human review without weakening the oracle to fit the implementation.
+6. Triage automatic advisory findings, then resolve required checks and human review without weakening the oracle to
+   fit the implementation.
 7. Squash-merge with a Conventional Commit pull-request title.
 
 ## GitHub Control Plane
@@ -147,6 +148,31 @@ AI review may search for omissions, inconsistent assumptions, and cross-file ris
 - whether the result is ready to merge or release.
 
 A green check is necessary but not sufficient approval. A human approval without required green checks is also insufficient.
+
+## Automatic Advisory Review
+
+`.github/workflows/open-code-review.yml` is the automatic heuristic lane in the completion flow. When
+`OCR_ENABLED=true`, opening, reopening, marking ready, or updating a non-Draft same-repository PR against `main`
+triggers OpenCodeReview. Dependabot and external fork PRs are excluded from automatic model spending. CI and the
+advisory review may run concurrently after work is offered for review; OpenCodeReview is deliberately not executed by
+the local deterministic harness.
+
+The workflow reads the trusted base branch, fetches the proposed Git objects without executing PR code, and sends the
+diff plus relevant repository context to the configured LLM provider. Enabling it is an R2 data and provider decision:
+use a provider approved for the repository's confidentiality level and a dedicated credential with an appropriate
+quota. Configuration names and activation order are documented in [README.md](README.md#enable-automatic-advisory-review).
+
+OpenCodeReview submits `COMMENT` reviews and a sticky summary. It does not approve, request changes, fix code, or own a
+merge decision. Findings do not fail the check, and provider or action availability is not part of `CI / required`.
+Each eligible PR update publishes a complete review pass; earlier inline comments remain as review history rather than
+suppressing a new finding merely because it touches the same lines.
+The human reviewer validates each material finding against intent, contracts, and risk. A valid fix remains subject to
+the confirmed change scope, must rerun `uv run poe harness`, and needs new human confirmation if it exposes an R2
+decision. A false positive may be resolved with a concise explanation; zero findings is evidence, not approval.
+
+The `team` and `high-assurance` governance profiles require review-thread resolution, so their normal human workflow
+also closes or explains OpenCodeReview inline threads. This does not turn the bot into an eligible approving reviewer.
+Set `OCR_ENABLED=false` to stop external model calls without weakening deterministic CI.
 
 ## Changing the Harness
 

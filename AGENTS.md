@@ -39,6 +39,8 @@ Use Poe tasks as the public interface. Scripts under `scripts/harness/` are impl
 
 - Run `uv run poe check` for fast feedback while editing.
 - Run `uv run poe harness` before handing work to a reviewer or updating a pull request.
+- A configured, non-Draft pull request triggers the repository's separate OpenCodeReview workflow. Do not move that
+  probabilistic external review into `check` or `harness`, and do not treat its output as approval.
 - Use `uv run poe repo-bootstrap bootstrap ... --dry-run` only when GitHub governance is in scope. Running it with `--apply` changes external repository state and requires explicit human authorization for the exact repository, profile, and maintainers.
 
 If a command fails, fix the product change or report the blocker. Do not bypass the command or modify its gate unless governance itself is explicitly in scope and human-approved.
@@ -60,6 +62,8 @@ Report:
 - acceptance examples covered;
 - architecture, contract, security, data, dependency, deployment, or harness impact;
 - commands run and their results;
+- the disposition of material OpenCodeReview findings already present on the pull request, without silently fixing a
+  finding that broadens intent or crosses an unconfirmed R2 boundary;
 - remaining uncertainty, decisions, or follow-ups that require a human.
 
 The agent's handoff is evidence for review, not approval to merge.

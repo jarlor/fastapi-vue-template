@@ -18,6 +18,7 @@ Work separates intent, implementation, verification, and release authority so th
 | Node | Node 22.12+, selected by `.node-version`; npm lockfile is authoritative |
 | Task interface | Poe, invoked through `uv run poe` |
 | Quality gates | Ruff, pytest, architecture and contract checks, frontend tests |
+| Advisory review | OpenCodeReview on enabled, non-Draft pull requests |
 
 ## Create a Repository
 
@@ -53,6 +54,27 @@ write permissions, reviewer capacity, Rulesets availability, and the real GitHub
 required check before anything is changed. The command then renders CODEOWNERS and converges the protected `main`
 Ruleset. Team profiles, token permissions, and recovery behavior are documented in
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Enable Automatic Advisory Review
+
+The template includes a safe-by-default OpenCodeReview workflow, but generated repositories leave it disabled until
+a human approves the model provider and its data policy. GitHub Actions cannot reuse a local Codex session; configure
+these under **Settings → Secrets and variables → Actions**:
+
+| Kind | Name | Value |
+|---|---|---|
+| Secret | `OCR_LLM_URL` | Approved LLM API endpoint |
+| Secret | `OCR_LLM_AUTH_TOKEN` | Dedicated, limited provider credential |
+| Variable | `OCR_LLM_MODEL` | Provider model name |
+| Variable | `OCR_LLM_USE_ANTHROPIC` | `true` for Anthropic; `false` for an OpenAI-compatible API |
+| Variable | `OCR_ENABLED` | Set to `true` only after the four values above are ready |
+
+Once enabled, every non-Draft, non-Dependabot, same-repository PR opened or updated against `main` is reviewed
+automatically. Source diffs and repository context are sent to the configured provider. The bot posts advisory
+comments only: it cannot fix, approve, merge, or release the change, and its check is not part of `CI / required`. See
+the review boundary in
+[CONTRIBUTING.md](CONTRIBUTING.md#automatic-advisory-review) and the accepted trade-offs in
+[ADR 0001](docs/adr/0001-automatic-advisory-code-review.md).
 
 ## Develop
 

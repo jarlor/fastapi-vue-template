@@ -1,0 +1,4 @@
+# The trusted hook command binds these checked-out local-review artifacts to LF-normalized digests.
+/.codex/hooks/stop_review.py text eol=lf
+/.opencodereview/rule.json text eol=lf
+/.opencodereview/review-rules.md text eol=lf

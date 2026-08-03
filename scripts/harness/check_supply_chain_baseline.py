@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import shlex
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,7 +23,7 @@ OPEN_CODE_REVIEW_REF = f"{OPEN_CODE_REVIEW_ACTION}@5829539379ecc3c2e43c36061b734
 OPEN_CODE_REVIEW_CONDITION = " ".join(
     (
         "vars.OCR_ENABLED == 'true'",
-        "&& github.actor != 'dependabot[bot]'",
+        "&& github.event.pull_request.user.login != 'dependabot[bot]'",
         "&& github.event.pull_request.draft == false",
         "&& github.event.pull_request.head.repo.full_name == github.repository",
     )
@@ -29,10 +32,36 @@ OPEN_CODE_REVIEW_GUIDANCE = ".opencodereview/review-rules.md"
 OPEN_CODE_REVIEW_JOB = "advisory-review"
 OPEN_CODE_REVIEW_RULE = ".opencodereview/rule.json"
 OPEN_CODE_REVIEW_WORKFLOW = ".github/workflows/open-code-review.yml"
+LOCAL_REVIEW_HOOK_CONFIG = ".codex/hooks.json"
+LOCAL_REVIEW_HOOK_SCRIPT = ".codex/hooks/stop_review.py"
+LOCAL_REVIEW_GIT_ATTRIBUTES = (
+    "/.codex/hooks/stop_review.py text eol=lf",
+    "/.opencodereview/rule.json text eol=lf",
+    "/.opencodereview/review-rules.md text eol=lf",
+)
+LOCAL_REVIEW_HOOK_DESCRIPTION = (
+    "Require one local OpenCodeReview delegation pass before Codex hands off a changed repository state."
+)
+LOCAL_REVIEW_HOOK_STATUS = "Preparing local OpenCodeReview delegation"
+LOCAL_REVIEW_HOOK_TIMEOUT = 30
+LOCAL_REVIEW_INTEGRITY_FAILURE = (
+    "Trusted local review artifacts failed integrity checks. Inspect .codex/hooks/stop_review.py and "
+    ".opencodereview/, then re-trust the exact hook with /hooks."
+)
 OPEN_CODE_REVIEW_PERMISSIONS = {"contents": "read", "pull-requests": "write"}
 OPEN_CODE_REVIEW_EVENTS = {"opened", "synchronize", "reopened", "ready_for_review"}
 OPEN_CODE_REVIEW_RULE_CONFIG = {
     "include": [
+        ".gitattributes",
+        ".github/CODEOWNERS",
+        ".github/CODEOWNERS.template",
+        ".github/pull_request_template.md",
+        ".opencodereview/review-rules.md",
+        "AGENTS.md",
+        "ARCHITECTURE.md",
+        "CONTRIBUTING.md",
+        "README.md",
+        "docs/adr/**/*.md",
         "tests/**/*.py",
         "harness_tests/**/*.py",
         "**/*.test.{js,jsx,ts,tsx}",
@@ -101,6 +130,44 @@ class Violation:
 
     def format(self, root: Path) -> str:
         return f"{self.path.relative_to(root)}: {self.message}"
+
+
+def expected_local_review_commands(
+    script_digest: str,
+    guidance_digest: str,
+    rule_digest: str,
+) -> tuple[str, str]:
+    """Return isolated bootstrap commands bound to the three trusted artifacts."""
+    expected = {
+        LOCAL_REVIEW_HOOK_SCRIPT: script_digest,
+        OPEN_CODE_REVIEW_GUIDANCE: guidance_digest,
+        OPEN_CODE_REVIEW_RULE: rule_digest,
+    }
+    program = "\n".join(
+        (
+            "import hashlib,io,json,runpy,sys",
+            "from pathlib import Path",
+            f"failure={LOCAL_REVIEW_INTEGRITY_FAILURE!r}",
+            f"expected={expected!r}",
+            "raw=sys.stdin.read()",
+            "try:",
+            " data=json.loads(raw)",
+            " cwd=Path(data.get('cwd') or Path.cwd()).resolve(strict=True)",
+            " root=next((p for p in (cwd,*cwd.parents) if (p/'.git').exists()),None)",
+            " if root is None: raise RuntimeError('root')",
+            " actual={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in expected}",
+            " if actual!=expected: raise RuntimeError('digest')",
+            " sys.stdin=io.StringIO(raw)",
+            " runpy.run_path(str(root/'.codex/hooks/stop_review.py'),run_name='__main__')",
+            "except Exception:",
+            " print(json.dumps({'continue':False,'stopReason':failure},separators=(',',':')))",
+        )
+    )
+    source = f"exec({program!r})"
+    return (
+        f"python3 -I -S -c {shlex.quote(source)}",
+        subprocess.list2cmdline(["py", "-3", "-I", "-S", "-c", source]),
+    )
 
 
 def load_yaml(path: Path) -> Any:
@@ -384,6 +451,88 @@ def check_open_code_review_rules(root: Path) -> list[Violation]:
     return violations
 
 
+def check_local_review_hook(root: Path) -> list[Violation]:
+    """Require the trusted Codex Stop hook and bind it to the reviewed handler bytes."""
+    config_path = root / LOCAL_REVIEW_HOOK_CONFIG
+    script_path = root / LOCAL_REVIEW_HOOK_SCRIPT
+    attributes_path = root / ".gitattributes"
+    violations: list[Violation] = []
+
+    try:
+        attributes = tuple(line.rstrip() for line in attributes_path.read_text().splitlines())
+    except OSError:
+        attributes = ()
+    missing_attributes = [entry for entry in LOCAL_REVIEW_GIT_ATTRIBUTES if entry not in attributes]
+    if missing_attributes:
+        violations.append(
+            Violation(
+                attributes_path,
+                "local review handler must keep LF-normalized bytes for its trusted digest",
+            )
+        )
+
+    if not script_path.is_file() or script_path.is_symlink():
+        violations.append(Violation(script_path, "repository-owned local review handler is required"))
+        return violations
+    script_content = script_path.read_text()
+    required_handler_guards = (
+        "STATE_VERSION = 2",
+        'OCR_VERSION = "1.8.5"',
+        'OCR_COMMIT = "582953937"',
+        '"OCR_NO_UPDATE": "1"',
+        'if value.get("stop_hook_active") is True:',
+        '"--no-ext-diff"',
+        '"--no-textconv"',
+        '"delegate", "preview"',
+        '"delegate", "rule"',
+    )
+    missing_guards = [guard for guard in required_handler_guards if guard not in script_content]
+    if missing_guards:
+        violations.append(Violation(script_path, "local review handler is missing a reviewed safety guard"))
+
+    if not config_path.is_file() or config_path.is_symlink():
+        violations.append(Violation(config_path, "repository-owned Codex Stop hook is required"))
+        return violations
+    try:
+        config = json.loads(config_path.read_text())
+    except json.JSONDecodeError as error:
+        violations.append(Violation(config_path, f"invalid Codex hook JSON: {error.msg}"))
+        return violations
+
+    guidance_path = root / OPEN_CODE_REVIEW_GUIDANCE
+    guidance_digest = hashlib.sha256(guidance_path.read_bytes()).hexdigest() if guidance_path.is_file() else ""
+    rule_path = root / OPEN_CODE_REVIEW_RULE
+    rule_digest = hashlib.sha256(rule_path.read_bytes()).hexdigest() if rule_path.is_file() else ""
+    script_digest = hashlib.sha256(script_path.read_bytes()).hexdigest()
+    posix_command, windows_command = expected_local_review_commands(script_digest, guidance_digest, rule_digest)
+    expected_config = {
+        "description": LOCAL_REVIEW_HOOK_DESCRIPTION,
+        "hooks": {
+            "Stop": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": posix_command,
+                            "commandWindows": windows_command,
+                            "timeout": LOCAL_REVIEW_HOOK_TIMEOUT,
+                            "statusMessage": LOCAL_REVIEW_HOOK_STATUS,
+                        }
+                    ]
+                }
+            ]
+        },
+    }
+    if config != expected_config:
+        violations.append(
+            Violation(
+                config_path,
+                "Codex Stop hook must match the reviewed command, timeout, and trusted artifact integrity digests",
+            )
+        )
+    return violations
+
+
 def check_workflow_commands(path: Path, workflow_text: str) -> list[Violation]:
     """Block mutable dependency installation commands in workflows."""
     violations: list[Violation] = []
@@ -438,6 +587,7 @@ def check_supply_chain_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     violations.extend(check_workflows(root))
     violations.extend(check_open_code_review_workflow(root))
     violations.extend(check_open_code_review_rules(root))
+    violations.extend(check_local_review_hook(root))
     violations.extend(check_dependency_updates(root))
     return violations
 

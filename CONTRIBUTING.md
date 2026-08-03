@@ -48,18 +48,66 @@ Explicit human approval is required before implementation when a change affects 
 
 R2 changes require maintainer review. Use an ADR when the decision is durable, costly to reverse, or changes an invariant.
 
+## Local Development Lifecycle
+
+The end-to-end path uses GitHub Flow while keeping intent, deterministic verification, AI review, and release
+authority separate:
+
+1. Confirm the change contract, acceptance examples, non-goals, risk class, and human decision owner. Stop for
+   explicit human approval before any R2 implementation.
+2. Update local `main`, then create a short-lived branch such as `feat/<topic>`, `fix/<topic>`, or `chore/<topic>`.
+3. Make the smallest coherent change and add focused tests. Use `uv run poe check` for fast feedback while editing,
+   and commit coherent branch checkpoints when useful.
+4. Run `uv run poe harness` before handoff or pull-request updates. This remains the local deterministic oracle.
+5. When Codex reaches a stopping point with a new repository fingerprint, allow the trusted project Stop hook to
+   verify the pinned OCR command and request a review-only continuation with exact branch/workspace commands.
+6. Triage each material local finding against the confirmed intent and contracts. The review continuation reports
+   findings but does not edit, commit, or push. Apply an accepted fix only in a subsequent implementation pass; ask
+   the human decision owner first if it broadens scope or exposes an R2 choice.
+7. After a fix, use `check` while iterating, then rerun `harness`. The changed fingerprint triggers another local
+   review request before handoff.
+8. Push the branch and open or update a pull request to `main` using the repository template. Draft pull requests are
+   encouraged for unresolved human decisions.
+9. Resolve the required deterministic CI, human review, and—when separately enabled—the automatic PR advisory
+   review. Do not weaken an oracle merely to fit the implementation.
+10. A human maintainer squash-merges with a Conventional Commit pull-request title only after required evidence and
+    approvals are complete. `main` remains protected and releasable.
+
+### Local Codex Completion Review
+
+Install OpenCodeReview 1.8.5 and trust the exact project hook through `/hooks` as described in
+[README.md](README.md#create-a-repository). For each new changed-work fingerprint, `.codex/hooks.json` invokes the
+repository-owned Stop handler. It emits exact OpenCodeReview commands for whichever scopes apply:
+
+- committed branch changes from `origin/main` to `HEAD`, falling back to local `main` when necessary;
+- the current workspace, including tracked and untracked changes.
+
+Because OCR 1.8.5 excludes deleted files from its reviewable list, the continuation also receives root-anchored Git
+commands that enumerate and inspect deletions directly.
+
+The delegate selects reviewable files and auto-discovers `.opencodereview` rules; it does not call an OCR-hosted model.
+The current Codex session is the read-only reviewer, so this lane needs no separate OCR LLM URL, model name, or API
+token. It is workstation-orchestrated rather than offline: the active Codex account and organization data controls
+still apply to source/context processing. The handler validates the pinned CLI, and the continuation uses
+`OCR_NO_UPDATE=1`; unchanged fingerprints are not requested again. Deterministic checks still run independently.
+
+The Stop hook executes only in a trusted project and after the developer trusts its exact definition. Codex or an
+administrator can disable it, and development outside that configured client can bypass it. It is therefore a team
+workflow guardrail—not a security boundary, required merge check, independent approval, or substitute for human R2
+decisions. Its loop guard records that the continuation returned for an unchanged fingerprint; it cannot prove that
+the agent followed the review instructions or that the findings were complete. A zero-finding review is useful
+evidence, not approval.
+
+This default assumes a trusted developer workstation. The hook does not deliberately invoke project build, test, or
+application commands, but it fingerprints through Git outside the Codex sandbox. The selected Python, Git, OCR and
+Node installations, `PATH`, system/global/local Git configuration and filters, and the worktree's Git metadata are
+therefore machine prerequisites, not security boundaries enforced by this template.
+
 ## GitHub Flow
 
-`main` is protected and must remain releasable.
-
-1. Confirm the change contract and risk class.
-2. Create a short-lived branch from current `main`, such as `feat/<topic>`, `fix/<topic>`, or `chore/<topic>`.
-3. Make the smallest coherent change. Use `uv run poe check` for fast local feedback.
-4. Run `uv run poe harness` before requesting review.
-5. Open a pull request to `main` using the repository template. Draft pull requests are encouraged for early human decisions.
-6. Triage automatic advisory findings, then resolve required checks and human review without weakening the oracle to
-   fit the implementation.
-7. Squash-merge with a Conventional Commit pull-request title.
+The lifecycle above is the repository's GitHub Flow: all product work reaches protected `main` through a short-lived
+branch and pull request. The local review improves the work before it is offered for review; required CI and human
+merge authority remain on GitHub.
 
 ## GitHub Control Plane
 
@@ -151,21 +199,24 @@ A green check is necessary but not sufficient approval. A human approval without
 
 ## Automatic Advisory Review
 
-`.github/workflows/open-code-review.yml` is the automatic heuristic lane in the completion flow. When
-`OCR_ENABLED=true`, opening, reopening, marking ready, or updating a non-Draft same-repository PR against `main`
-triggers OpenCodeReview. Dependabot and external fork PRs are excluded from automatic model spending. CI and the
-advisory review may run concurrently after work is offered for review; OpenCodeReview is deliberately not executed by
-the local deterministic harness.
+`.github/workflows/open-code-review.yml` is the optional CI heuristic lane in the completion flow. It is distinct from
+the local Codex Stop-hook review and is disabled by default in generated repositories. When `OCR_ENABLED=true`,
+opening, reopening, marking ready, or updating a non-Draft same-repository PR against `main` triggers OpenCodeReview.
+Dependabot and external fork PRs are excluded from automatic model spending. Required CI and the advisory review may
+run concurrently after work is offered for review; OpenCodeReview is deliberately not executed by the local
+deterministic harness.
 
 The workflow reads the trusted base branch, fetches the proposed Git objects without executing PR code, and sends the
 diff plus relevant repository context to the configured LLM provider. Enabling it is an R2 data and provider decision:
 use a provider approved for the repository's confidentiality level and a dedicated credential with an appropriate
-quota. Configuration names and activation order are documented in [README.md](README.md#enable-automatic-advisory-review).
+quota. GitHub Actions cannot reuse the developer's Codex session or local OCR setup. Configuration names and
+activation order are documented in [README.md](README.md#enable-automatic-pr-advisory-review).
 
 OpenCodeReview submits `COMMENT` reviews and a sticky summary. It does not approve, request changes, fix code, or own a
 merge decision. Findings do not fail the check, and provider or action availability is not part of `CI / required`.
-Each eligible PR update publishes a complete review pass; earlier inline comments remain as review history rather than
-suppressing a new finding merely because it touches the same lines.
+Each eligible PR update publishes a new pass over files OCR considers reviewable; OCR 1.8.5 excludes deleted files,
+so removal consequences remain part of deterministic checks and human diff review. Earlier inline comments remain as
+review history rather than suppressing a new finding merely because it touches the same lines.
 The human reviewer validates each material finding against intent, contracts, and risk. A valid fix remains subject to
 the confirmed change scope, must rerun `uv run poe harness`, and needs new human confirmation if it exposes an R2
 decision. A false positive may be resolved with a concise explanation; zero findings is evidence, not approval.
@@ -194,5 +245,8 @@ These are the stable public interfaces:
 uv run poe check       # fast local feedback
 uv run poe harness     # complete required verification
 ```
+
+The local advisory review is Stop-hook driven and intentionally has no Poe task; it remains outside these
+deterministic commands.
 
 `repo-bootstrap` is the stable GitHub-governance entrypoint described above. Targeted Poe tasks and scripts may evolve; CI and contributor documentation should call the stable interfaces.

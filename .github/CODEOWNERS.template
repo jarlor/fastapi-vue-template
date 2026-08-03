@@ -3,8 +3,9 @@
 
 * __MAINTAINERS__
 
-# Changes to the control plane and deterministic guardrails need an explicit owner.
+# Changes to the control plane, lifecycle hooks, and deterministic guardrails need an explicit owner.
 /.github/ __MAINTAINERS__
+/.codex/ __MAINTAINERS__
 /.opencodereview/ __MAINTAINERS__
 /AGENTS.md __MAINTAINERS__
 /ARCHITECTURE.md __MAINTAINERS__

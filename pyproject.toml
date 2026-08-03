@@ -48,9 +48,9 @@ default-groups = ["dev"]
 [tool.poe.tasks]
 api = "python -m app.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
-lint = "ruff check src/app scripts tests harness_tests"
-fmt = "ruff format src/app scripts tests harness_tests"
-format-check = "ruff format --check src/app scripts tests harness_tests"
+lint = "ruff check .codex src/app scripts tests harness_tests"
+fmt = "ruff format .codex src/app scripts tests harness_tests"
+format-check = "ruff format --check .codex src/app scripts tests harness_tests"
 test-fast = "python -m pytest tests/ -q"
 test = "python -m pytest tests/ -v --cov=src/app --cov-report=term-missing --cov-fail-under=80"
 harness-test = "python -m pytest harness_tests/ -v"

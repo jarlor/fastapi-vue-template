@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Run the pinned central CI harness
-        uses: jarlor/fastapi-vue-harness@1b1695414cb10406f09617efab88794d89f0c1dc
+        uses: jarlor/fastapi-vue-harness@c533f5f820ffc54b4738d7c2aa31fc7cbc7c32ad
 
   required:
     name: required

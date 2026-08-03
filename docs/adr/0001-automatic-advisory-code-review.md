@@ -4,7 +4,7 @@
 - **Date:** 2026-08-03
 - **Human decision owner:** @jarlor
 - **Risk class and triggers:** R2 — external model service, credentials, CI permissions, and verification authority
-- **Related issue / pull request:** implementation pull request to be linked before merge
+- **Related issue / pull request:** [#78](https://github.com/jarlor/fastapi-vue-template/pull/78)
 
 ## Context
 
@@ -84,5 +84,5 @@ required.
 
 ## Human Approval
 
-@jarlor approved automatic OpenCodeReview integration as an advisory completion-stage review. The implementation PR
-will be the durable approval and residual-risk record.
+@jarlor approved automatic OpenCodeReview integration as an advisory completion-stage review. Pull request #78 is the
+durable approval and residual-risk record.

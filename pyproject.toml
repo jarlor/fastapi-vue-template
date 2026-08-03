@@ -1,14 +1,13 @@
 [project]
-name = "app_name"
+name = "app"
 version = "1.0.0"
-description = "A FastAPI + Vue3 application"
+description = "A human-governed FastAPI + Vue team application"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "pydantic-settings>=2.0",
     "loguru>=0.7",
-    "httpx>=0.27",
     "pyyaml>=6.0",
     "python-dotenv>=1.2",
 ]
@@ -24,8 +23,7 @@ dev = [
     "pytest-cov>=7.0",
     "ruff>=0.11",
     "pre-commit>=4.0",
-    "python-semantic-release>=9.0",
-    "copier>=9.15.0",
+    "httpx>=0.27",
 ]
 
 # ---------------------------------------------------------------------------
@@ -36,7 +34,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/app_name"]
+packages = ["src/app"]
 
 # ---------------------------------------------------------------------------
 # uv
@@ -48,38 +46,47 @@ default-groups = ["dev"]
 # Poe Tasks
 # ---------------------------------------------------------------------------
 [tool.poe.tasks]
-api = "python -m app_name.run_api"
+api = "python -m app.run_api"
 frontend = { cmd = "npm run dev", cwd = "src/frontend" }
-lint = "ruff check src/app_name scripts tests harness_tests"
-fmt = "ruff format src/app_name scripts tests harness_tests"
-test = "python -m pytest tests/ -v --cov=src/app_name --cov-report=term-missing --cov-fail-under=80"
+lint = "ruff check src/app scripts tests harness_tests"
+fmt = "ruff format src/app scripts tests harness_tests"
+format-check = "ruff format --check src/app scripts tests harness_tests"
+test-fast = "python -m pytest tests/ -q"
+test = "python -m pytest tests/ -v --cov=src/app --cov-report=term-missing --cov-fail-under=80"
 harness-test = "python -m pytest harness_tests/ -v"
-agent-start = "python scripts/harness/check_branch_workflow.py --agent-start"
-agent-handoff = "python scripts/harness/check_branch_workflow.py --agent-handoff"
-branch-harness = "python scripts/harness/check_branch_workflow.py"
-governance-harness = "python scripts/harness/check_governance_baseline.py"
 supply-chain = "python scripts/harness/check_supply_chain_baseline.py"
 architecture = "python scripts/harness/check_context_boundaries.py"
 security = "python scripts/harness/check_security_baseline.py"
 api-contracts = "python scripts/harness/check_api_contracts.py"
 api-contracts-write = "python scripts/harness/check_api_contracts.py --write"
-frontend-harness = "python scripts/harness/check_frontend_boundaries.py"
-runtime-harness = "python scripts/harness/check_runtime_baseline.py"
-template-smoke = "python scripts/template_smoke.py"
+frontend-harness = "node scripts/harness/check_frontend_boundaries.mjs"
+frontend-build = { cmd = "npm run build", cwd = "src/frontend" }
+frontend-test = { cmd = "npm run test", cwd = "src/frontend" }
+repo-bootstrap = "python scripts/governance/bootstrap_github.py"
+check = [
+    "format-check",
+    "lint",
+    "harness-test",
+    "supply-chain",
+    "architecture",
+    "security",
+    "frontend-harness",
+    "test-fast",
+    "frontend-build",
+    "frontend-test",
+]
 harness = [
-    { cmd = "uv run poe lint" },
-    { cmd = "uv run poe harness-test" },
-    { cmd = "uv run poe branch-harness" },
-    { cmd = "uv run poe governance-harness" },
-    { cmd = "uv run poe supply-chain" },
-    { cmd = "uv run poe architecture" },
-    { cmd = "uv run poe security" },
-    { cmd = "uv run poe api-contracts" },
-    { cmd = "uv run poe frontend-harness" },
-    { cmd = "uv run poe runtime-harness" },
-    { cmd = "uv run poe test" },
-    { cmd = "npm --prefix src/frontend run build" },
-    { cmd = "npm --prefix src/frontend run test" },
+    "format-check",
+    "lint",
+    "harness-test",
+    "supply-chain",
+    "architecture",
+    "security",
+    "api-contracts",
+    "frontend-harness",
+    "test",
+    "frontend-build",
+    "frontend-test",
 ]
 
 # ---------------------------------------------------------------------------
@@ -90,7 +97,14 @@ line-length = 120
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+"harness_tests/**/*.py" = ["S101", "S603", "S607"]
+"src/app/config.py" = ["S104"]
+"scripts/harness/check_api_contracts.py" = ["S603"]
+"scripts/harness/check_security_baseline.py" = ["S607"]
 
 # ---------------------------------------------------------------------------
 # Pytest
@@ -98,12 +112,3 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-
-# ---------------------------------------------------------------------------
-# Semantic Release
-# ---------------------------------------------------------------------------
-[tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
-version_variables = ["src/app_name/main.py:__version__"]
-branch = "main"
-build_command = ""

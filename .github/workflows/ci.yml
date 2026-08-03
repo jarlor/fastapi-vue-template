@@ -2,20 +2,35 @@ name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [main]
   pull_request:
-    branches: [dev, main]
+    branches: [main]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  merge_group:
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  backend:
-    name: Backend quality
+  pr-title:
+    name: PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Validate Conventional Commit title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: python3 scripts/governance/bootstrap_github.py validate-pr-title --title "$PR_TITLE"
+
+  quality:
+    name: Quality gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,28 +43,6 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version-file: ".python-version"
-
-      - name: Install dependencies
-        run: uv sync --frozen --group dev
-
-      - name: Lint
-        run: uv run poe lint
-
-      - name: Architecture
-        run: uv run poe architecture
-
-      - name: Test
-        run: uv run poe test
-
-  frontend:
-    name: Frontend quality
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/frontend
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -57,86 +50,39 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Build
-        run: npm run build
-
-      - name: Test
-        run: npm run test
-
-  template-harness:
-    name: Template harness
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081
-
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version-file: ".python-version"
 
       - name: Install Python dependencies
         run: uv sync --frozen --group dev
-
-      - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci --prefix src/frontend --no-audit --no-fund
 
-      - name: Run repository harness
+      - name: Run the complete repository harness
         run: uv run poe harness
 
-  template-smoke:
-    name: Template smoke
+  required:
+    name: required
+    if: always()
+    needs:
+      - pr-title
+      - quality
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081
-
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version-file: ".python-version"
-
-      - name: Install Python dependencies
-        run: uv sync --frozen --group dev
-
-      - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: "22"
-
-      - name: Run generated-project smoke
-        run: uv run poe template-smoke --full
-
-  deploy-scripts:
-    name: Deploy script syntax
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Check shell syntax
+      - name: Resolve required result
+        env:
+          PR_TITLE_RESULT: ${{ needs.pr-title.result }}
+          QUALITY_RESULT: ${{ needs.quality.result }}
         run: |
-          shopt -s nullglob
-          scripts=(scripts/cicd/*.sh scripts/deploy/*.sh)
-          if [ "${#scripts[@]}" -eq 0 ]; then
-            echo "No deploy scripts found."
-            exit 0
+          set -euo pipefail
+
+          if [[ "$QUALITY_RESULT" != "success" ]]; then
+            echo "Quality gate did not pass: $QUALITY_RESULT" >&2
+            exit 1
           fi
-          bash -n "${scripts[@]}"
+
+          if [[ "$PR_TITLE_RESULT" != "success" && "$PR_TITLE_RESULT" != "skipped" ]]; then
+            echo "PR title gate did not pass: $PR_TITLE_RESULT" >&2
+            exit 1
+          fi
+
+          echo "All required checks passed."

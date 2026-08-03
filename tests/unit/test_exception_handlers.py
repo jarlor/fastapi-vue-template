@@ -6,25 +6,13 @@ from unittest.mock import MagicMock
 
 from fastapi.exceptions import RequestValidationError
 
-from app_name.shared.exceptions.business_error import BusinessError
-from app_name.shared.exceptions.error_codes import ErrorCode
-from app_name.shared.exceptions.handlers import (
-    business_error_handler,
+from app.shared.exceptions.handlers import (
     unhandled_error_handler,
     validation_error_handler,
 )
 
 
 class TestExceptionHandlers:
-    async def test_business_error_handler_returns_api_envelope(self) -> None:
-        response = await business_error_handler(
-            MagicMock(),
-            BusinessError(ErrorCode.VALIDATION_ERROR, "bad input"),
-        )
-
-        assert response.status_code == 200
-        assert response.body == b'{"code":10000,"success":false,"data":null,"message":"bad input"}'
-
     async def test_validation_error_handler_returns_api_envelope(self) -> None:
         exc = RequestValidationError(
             [

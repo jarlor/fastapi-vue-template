@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app_name.shared.middleware.request_context import (
+from app.shared.middleware.request_context import (
     RequestContextMiddleware,
     get_request_id,
 )

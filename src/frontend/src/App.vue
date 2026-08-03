@@ -5,8 +5,7 @@ const route = useRoute();
 const router = useRouter();
 
 const menuItems = [
-  { key: "/dashboard", label: "Dashboard", icon: "icon-dashboard" },
-  // Add more menu items here
+  { key: "/tasks", label: "Tasks" },
 ];
 
 function onMenuSelect(key: string) {
@@ -18,7 +17,7 @@ function onMenuSelect(key: string) {
   <a-layout class="app-layout">
     <a-layout-sider class="app-sider" :width="220" collapsible>
       <div class="sider-logo">
-        <span class="logo-text">App</span>
+        <span class="logo-text">Team App</span>
       </div>
       <a-menu
         :selected-keys="[route.path]"
@@ -34,7 +33,7 @@ function onMenuSelect(key: string) {
     <a-layout>
       <a-layout-header class="app-header">
         <div class="header-content">
-          <span class="app-title">App</span>
+          <span class="app-title">Human-governed delivery</span>
           <div class="header-spacer" />
           <!-- Add user info and logout here when implementing authentication -->
         </div>

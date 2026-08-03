@@ -1,106 +1,152 @@
-"""Tests for frontend boundary harness checks."""
+"""Tests for the TypeScript/Vue AST frontend boundary checker."""
 
 from __future__ import annotations
 
-import importlib.util
-import sys
+import subprocess
 from pathlib import Path
-from types import ModuleType
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-CHECKER_PATH = ROOT / "scripts" / "harness" / "check_frontend_boundaries.py"
-
-
-def load_checker_module() -> ModuleType:
-    """Load the checker script as a module without making scripts a package."""
-    spec = importlib.util.spec_from_file_location("check_frontend_boundaries", CHECKER_PATH)
-    if spec is None or spec.loader is None:
-        msg = f"Could not load {CHECKER_PATH}"
-        raise RuntimeError(msg)
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-checker = load_checker_module()
+CHECKER_PATH = ROOT / "scripts" / "harness" / "check_frontend_boundaries.mjs"
 
 
 def write_frontend_file(root: Path, relative: str, content: str) -> Path:
-    """Write a frontend test fixture."""
+    """Write a frontend checker fixture."""
     path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
     return path
 
 
+def run_checker(frontend_src: Path) -> subprocess.CompletedProcess[str]:
+    """Run the Node checker against an isolated source tree."""
+    return subprocess.run(
+        ["node", str(CHECKER_PATH), "--frontend-src", str(frontend_src)],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+
 class TestFrontendBoundaryChecker:
-    def test_allows_api_layer_to_own_http_client(self, tmp_path: Path, monkeypatch) -> None:
+    def test_allows_api_layer_to_own_http_client(self, tmp_path: Path) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
-        write_frontend_file(frontend_src, "api/index.ts", 'import axios from "axios";\nfetch("/health");\n')
-
-        assert checker.check_frontend_boundaries() == []
-
-    def test_blocks_http_client_outside_api_layer(self, tmp_path: Path, monkeypatch) -> None:
-        frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
         write_frontend_file(
             frontend_src,
-            "pages/Dashboard.vue",
-            '<script setup lang="ts">\nfetch("/health");\n</script>\n',
+            "api/index.ts",
+            'import axios from "axios";\nfetch("/health");\nnew EventSource("/events");\n',
         )
 
-        violations = checker.check_frontend_boundaries()
+        result = run_checker(frontend_src)
 
-        assert len(violations) == 1
-        assert "HTTP clients must be used through src/frontend/src/api" in violations[0].message
+        assert result.returncode == 0, result.stderr
 
-    def test_blocks_event_source_outside_api_layer(self, tmp_path: Path, monkeypatch) -> None:
+    @pytest.mark.parametrize("suffix", ["js", "jsx", "ts", "tsx"])
+    def test_scans_javascript_and_typescript_source_kinds(self, tmp_path: Path, suffix: str) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
+        write_frontend_file(frontend_src, f"pages/Tasks.{suffix}", 'const load = () => fetch("/tasks");\n')
+
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 1
+        assert "HTTP clients must be used through src/frontend/src/api" in result.stderr
+
+    def test_blocks_vue_script_setup_clients_but_ignores_template_text(self, tmp_path: Path) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
         write_frontend_file(
             frontend_src,
-            "pages/Chat.vue",
-            '<script setup lang="ts">\nnew EventSource("/chat");\n</script>\n',
+            "pages/Tasks.vue",
+            """<template>
+  <!-- Calling fetch() here would be wrong. -->
+  <p>Never import from \"axios\" in a component.</p>
+</template>
+<script setup lang="ts">
+new EventSource("/events");
+</script>
+""",
         )
 
-        violations = checker.check_frontend_boundaries()
+        result = run_checker(frontend_src)
 
-        assert len(violations) == 1
-        assert "HTTP clients must be used through src/frontend/src/api" in violations[0].message
+        assert result.returncode == 1
+        assert result.stderr.count("HTTP clients must be used through src/frontend/src/api") == 1
+        assert ":6:" in result.stderr
 
-    def test_blocks_axios_stream_response_type_in_browser_code(self, tmp_path: Path, monkeypatch) -> None:
+    def test_blocks_computed_global_fetch_alias(self, tmp_path: Path) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
+        write_frontend_file(
+            frontend_src,
+            "pages/Task.tsx",
+            'const request = globalThis["fetch"];\nrequest("/tasks");\nexport const view = <div />;\n',
+        )
+
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 1
+        assert ":1: HTTP clients must be used through" in result.stderr
+
+    def test_checks_expressions_inside_template_literal_interpolation(self, tmp_path: Path) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
+        write_frontend_file(frontend_src, "stores/tasks.ts", 'const value = `result: ${fetch("/tasks")}`;\n')
+
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 1
+        assert "HTTP clients must be used through src/frontend/src/api" in result.stderr
+
+    def test_ignores_comments_plain_strings_jsx_text_and_type_references(self, tmp_path: Path) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
+        write_frontend_file(
+            frontend_src,
+            "pages/Notes.tsx",
+            """// fetch('/not-code') and new EventSource('/not-code')
+const guidance = `Do not import from "axios" or set responseType: "stream" here`;
+type BrowserStream = EventSource;
+export const note = <p>fetch('/not-code')</p>;
+""",
+        )
+
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 0, result.stderr
+
+    def test_blocks_static_and_dynamic_axios_imports(self, tmp_path: Path) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
+        write_frontend_file(frontend_src, "stores/static.ts", 'import client from "axios";\nvoid client;\n')
+        write_frontend_file(frontend_src, "stores/dynamic.ts", 'const client = import("axios");\nvoid client;\n')
+
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 1
+        assert result.stderr.count("HTTP clients must be used through src/frontend/src/api") == 2
+
+    def test_blocks_axios_stream_response_type_in_api_layer(self, tmp_path: Path) -> None:
+        frontend_src = tmp_path / "src" / "frontend" / "src"
         write_frontend_file(
             frontend_src,
             "api/chat.ts",
-            'api.post("/chat", body, { responseType: "stream" });\n',
+            'api.post("/chat", body, { responseType: "stream" });\noptions["responseType"] = "stream";\n',
         )
 
-        violations = checker.check_frontend_boundaries()
+        result = run_checker(frontend_src)
 
-        assert len(violations) == 1
-        assert "Browser streaming must not use Axios responseType stream" in violations[0].message
+        assert result.returncode == 1
+        assert result.stderr.count("Browser streaming must not use Axios responseType stream") == 2
 
-    def test_allows_vue_component_style_choices(self, tmp_path: Path, monkeypatch) -> None:
+    def test_blocks_xml_http_request_in_classic_vue_script(self, tmp_path: Path) -> None:
         frontend_src = tmp_path / "src" / "frontend" / "src"
-        monkeypatch.setattr(checker, "FRONTEND_SRC", frontend_src)
-        monkeypatch.setattr(checker, "API_ROOT", frontend_src / "api")
         write_frontend_file(
             frontend_src,
-            "components/Legacy.vue",
-            (
-                '<script lang="ts">\n</script>\n<template>\n'
-                '  <div style="margin-top: 16px" />\n</template>\n'
-                "<style>\n.x { color: red; }\n</style>\n"
-            ),
+            "pages/Legacy.vue",
+            """<script lang="js">
+export default { created() { new window["XMLHttpRequest"](); } };
+</script>
+""",
         )
 
-        assert checker.check_frontend_boundaries() == []
+        result = run_checker(frontend_src)
+
+        assert result.returncode == 1
+        assert "HTTP clients must be used through src/frontend/src/api" in result.stderr

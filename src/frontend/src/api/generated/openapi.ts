@@ -11,13 +11,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Health
-         * @description Versioned health check endpoint.
-         */
+        /** Health */
         get: operations["health_api_v1_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Tasks */
+        get: operations["list_tasks_api_v1_tasks_get"];
+        put?: never;
+        /** Create Task */
+        post: operations["create_task_api_v1_tasks_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -61,6 +76,56 @@ export interface components {
              */
             success: boolean;
         };
+        /** APIResponse[NoneType] */
+        APIResponse_NoneType_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            /** Data */
+            data?: null;
+            /** Message */
+            message?: string | null;
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+        };
+        /** APIResponse[TaskRead] */
+        APIResponse_TaskRead_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["TaskRead"] | null;
+            /** Message */
+            message?: string | null;
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+        };
+        /** APIResponse[list[TaskRead]] */
+        APIResponse_list_TaskRead__: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            /** Data */
+            data?: components["schemas"]["TaskRead"][] | null;
+            /** Message */
+            message?: string | null;
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+        };
         /**
          * HealthStatus
          * @description Health check response payload.
@@ -70,6 +135,20 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** TaskCreate */
+        TaskCreate: {
+            /** Title */
+            title: string;
+        };
+        /** TaskRead */
+        TaskRead: {
+            /** Completed */
+            completed: boolean;
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
         };
     };
     responses: never;
@@ -96,6 +175,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["APIResponse_HealthStatus_"];
+                };
+            };
+        };
+    };
+    list_tasks_api_v1_tasks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIResponse_list_TaskRead__"];
+                };
+            };
+        };
+    };
+    create_task_api_v1_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIResponse_TaskRead_"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIResponse_NoneType_"];
                 };
             };
         };

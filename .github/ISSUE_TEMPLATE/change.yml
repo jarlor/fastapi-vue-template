@@ -1,0 +1,95 @@
+name: Change proposal
+description: Define intent, acceptance, non-goals, risk, and human decision ownership before implementation.
+title: ""
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is the change contract. AI may draft it, but protected-risk work cannot begin until the named human decision owner confirms it. Risk definitions live in `CONTRIBUTING.md`.
+
+  - type: input
+    id: human_owner
+    attributes:
+      label: Human decision owner
+      description: Name the person accountable for intent and risk acceptance.
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: confirmation
+    attributes:
+      label: Human confirmation
+      description: State whether the decision owner has confirmed this contract.
+      options:
+        - Confirmed by the human decision owner
+        - Needs human confirmation
+    validations:
+      required: true
+
+  - type: textarea
+    id: intent
+    attributes:
+      label: Intent
+      description: Describe the problem and the desired outcome without prescribing an implementation.
+      placeholder: What should become true, for whom, and why?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance examples
+      description: Give observable examples that an independent test or reviewer can verify.
+      placeholder: |
+        Given ...
+        When ...
+        Then ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: State what this change intentionally does not solve or alter.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk_class
+    attributes:
+      label: Risk class
+      description: Choose the highest applicable class from CONTRIBUTING.md.
+      options:
+        - R0 — mechanical; no intended behavior or contract change
+        - R1 — product behavior within existing protected boundaries
+        - R2 — protected boundary or verification authority changes
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk_triggers
+    attributes:
+      label: Risk triggers and rationale
+      description: Identify applicable protected-risk triggers or explain why none apply.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Independent verification
+      description: Describe the contracts, tests, checks, manual evidence, or rollout signals that will verify the outcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: open_questions
+    attributes:
+      label: Open questions or decisions
+      description: Record unresolved questions that require human input before or during implementation.
+    validations:
+      required: false

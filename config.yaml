@@ -9,10 +9,9 @@ server:
 cors:
   allow_origins:
     - "http://localhost:5173"
-    - "http://localhost:8006"
 
 frontend:
-  base_url: "http://localhost:8006"
+  base_url: "http://localhost:5173"
 
 logging:
   level: "INFO"                # DEBUG / INFO / WARNING / ERROR

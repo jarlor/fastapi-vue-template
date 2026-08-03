@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from app_name.shared.exceptions.business_error import BusinessError
-from app_name.shared.exceptions.error_codes import ErrorCode
-from app_name.shared.schemas.response import APIResponse
+from app.shared.exceptions.error_codes import ErrorCode
+from app.shared.schemas.response import APIResponse
 
 
 class TestErrorCode:
@@ -19,22 +18,6 @@ class TestErrorCode:
 
     def test_message_property(self) -> None:
         assert "validation" in ErrorCode.VALIDATION_ERROR.message.lower()
-
-
-class TestBusinessError:
-    def test_from_error_code(self) -> None:
-        err = BusinessError(ErrorCode.VALIDATION_ERROR)
-        assert err.code == 10000
-        assert "validation" in err.message.lower()
-
-    def test_custom_message(self) -> None:
-        err = BusinessError(ErrorCode.UNKNOWN_ERROR, "Something broke")
-        assert err.message == "Something broke"
-        assert err.code == 10099
-
-    def test_is_exception(self) -> None:
-        err = BusinessError(ErrorCode.VALIDATION_ERROR)
-        assert isinstance(err, Exception)
 
 
 class TestAPIResponse:

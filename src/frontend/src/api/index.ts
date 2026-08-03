@@ -2,6 +2,10 @@ import axios, { type AxiosInstance } from "axios";
 import type { components } from "./generated/openapi";
 
 export type HealthResponse = components["schemas"]["APIResponse_HealthStatus_"];
+export type Task = components["schemas"]["TaskRead"];
+export type CreateTaskInput = components["schemas"]["TaskCreate"];
+export type TaskResponse = components["schemas"]["APIResponse_TaskRead_"];
+export type TaskListResponse = components["schemas"]["APIResponse_list_TaskRead__"];
 
 const api: AxiosInstance = axios.create({
   baseURL: "/api/v1",
@@ -9,11 +13,6 @@ const api: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Add auth interceptor here when your project implements authentication
-
-// ---------------------------------------------------------------------------
-// Response interceptor: simple error logging
-// ---------------------------------------------------------------------------
 function attachErrorLogging(client: AxiosInstance) {
   client.interceptors.response.use(
     (response) => response,
@@ -26,13 +25,16 @@ function attachErrorLogging(client: AxiosInstance) {
 
 attachErrorLogging(api);
 
-// ---------------------------------------------------------------------------
-// API functions
-// ---------------------------------------------------------------------------
 export function getHealth() {
   return api.get<HealthResponse>("/health");
 }
 
-// Add more endpoint functions here
+export function listTasks() {
+  return api.get<TaskListResponse>("/tasks");
+}
+
+export function createTask(input: CreateTaskInput) {
+  return api.post<TaskResponse>("/tasks", input);
+}
 
 export default api;

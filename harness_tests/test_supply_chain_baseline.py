@@ -49,26 +49,6 @@ def seed_repo(root: Path) -> None:
     write_file(root, "src/frontend/package-lock.json")
     write_file(
         root,
-        ".github/dependabot.yml",
-        """
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "uv"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "weekly"
-""",
-    )
-    write_file(
-        root,
         ".github/workflows/ci.yml",
         f"""
 name: CI
@@ -82,6 +62,23 @@ jobs:
       - uses: {PINNED_CHECKOUT}
       - run: uv sync --frozen --group dev
       - run: npm ci --no-audit --no-fund
+""",
+    )
+    write_file(
+        root,
+        ".github/dependabot.yml",
+        """
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule: {interval: weekly}
+  - package-ecosystem: npm
+    directory: /src/frontend
+    schedule: {interval: weekly}
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: weekly}
 """,
     )
 
@@ -106,29 +103,46 @@ class TestSupplyChainBaseline:
 
         assert any("uses unpinned action: actions/checkout@v6" in message for message in messages)
 
-    def test_requires_dependabot_coverage(self, tmp_path: Path) -> None:
+    def test_requires_a_workflow(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
-        write_file(
-            tmp_path,
-            ".github/dependabot.yml",
+        (tmp_path / ".github/workflows/ci.yml").unlink()
+
+        messages = messages_for(tmp_path)
+
+        assert any("at least one GitHub Actions workflow is required" in message for message in messages)
+
+    def test_requires_dependency_update_coverage(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / ".github/dependabot.yml").unlink()
+
+        messages = messages_for(tmp_path)
+
+        assert any("Dependabot configuration is required" in message for message in messages)
+
+    def test_blocks_unpinned_remote_reusable_workflows_and_inherited_secrets(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        workflow = tmp_path / ".github/workflows/ci.yml"
+        workflow.write_text(
             """
-version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "weekly"
-""",
+name: CI
+on: [push]
+permissions: {}
+jobs:
+  delegated:
+    uses: attacker/project/.github/workflows/ci.yml@main
+    secrets: inherit
+"""
         )
 
         messages = messages_for(tmp_path)
 
-        assert any("Dependabot must cover github-actions at /" in message for message in messages)
-        assert any("Dependabot must cover uv at /" in message for message in messages)
+        assert any("uses unpinned reusable workflow" in message for message in messages)
+        assert any("must pass explicit secrets" in message for message in messages)
 
-    def test_requires_single_frontend_lockfile_policy(self, tmp_path: Path) -> None:
+    def test_requires_the_repository_owned_npm_lockfile(self, tmp_path: Path) -> None:
         seed_repo(tmp_path)
         (tmp_path / "uv.lock").unlink()
+        (tmp_path / "src/frontend/package-lock.json").unlink()
         write_file(tmp_path, "src/frontend/yarn.lock")
         package_json = tmp_path / "src/frontend/package.json"
         package_json.write_text(json.dumps({"name": "frontend", "packageManager": "pnpm@10.0.0"}))
@@ -136,7 +150,17 @@ updates:
         messages = messages_for(tmp_path)
 
         assert any("uv.lock: required lockfile is missing" in message for message in messages)
-        assert any("only one frontend package-manager lockfile is allowed" in message for message in messages)
+        assert any("npm package-lock.json is required" in message for message in messages)
+        assert any("this template uses npm" in message for message in messages)
+
+    def test_requires_package_manager_to_declare_npm(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        (tmp_path / "src/frontend/package-lock.json").unlink()
+        package_json = tmp_path / "src/frontend/package.json"
+        package_json.write_text(json.dumps({"name": "frontend", "packageManager": "yarn@4.0.0"}))
+
+        messages = messages_for(tmp_path)
+
         assert any("packageManager must match the committed frontend lockfile" in message for message in messages)
 
     def test_blocks_mutable_install_commands(self, tmp_path: Path) -> None:
@@ -157,4 +181,11 @@ updates:
 
         messages = messages_for(tmp_path)
 
-        assert any("top-level permissions must be contents: read" in message for message in messages)
+        assert any("top-level permissions must be empty or contents: read" in message for message in messages)
+
+    def test_accepts_an_explicitly_empty_permission_set(self, tmp_path: Path) -> None:
+        seed_repo(tmp_path)
+        workflow = tmp_path / ".github/workflows/ci.yml"
+        workflow.write_text(workflow.read_text().replace("permissions:\n  contents: read", "permissions: {}"))
+
+        assert messages_for(tmp_path) == []

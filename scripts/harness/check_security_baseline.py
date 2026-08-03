@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Enforce the repository security baseline.
+"""Block high-confidence secret leaks in tracked and unignored files.
 
-The checker is intentionally narrow and deterministic. It blocks high-confidence
-secret leaks and Python patterns that the project security standards prohibit.
+Python security patterns are owned by Ruff's standard ``S`` rules so this
+scanner can remain small and focused on repository-wide text artifacts.
 """
 
 from __future__ import annotations
 
-import ast
 import math
+import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,24 +59,20 @@ KNOWN_TOKEN_RES = [
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{40,}\b"),
     re.compile(r"\bsk-(?:live|proj)-[A-Za-z0-9_-]{20,}\b"),
 ]
-PLACEHOLDER_MARKERS = {
+PLACEHOLDER_VALUES = {
     "...",
-    "<",
-    ">",
     "change-me",
     "changeme",
     "dummy",
     "example",
     "fake",
     "generated",
-    "local",
     "placeholder",
     "sample",
-    "test",
     "todo",
-    "your_",
     "xxxx",
 }
+PLACEHOLDER_PREFIXES = ("<", "${", "dummy-", "example-", "fake-", "local-", "sample-", "test-", "your_")
 
 
 @dataclass(frozen=True)
@@ -105,8 +102,25 @@ def should_skip_path(path: Path, root: Path) -> bool:
 
 
 def iter_files(root: Path) -> list[Path]:
-    """Return repository files that should be scanned."""
-    return [path for path in sorted(root.rglob("*")) if path.is_file() and not should_skip_path(path, root)]
+    """Return tracked and unignored candidate files that should be scanned."""
+    result = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        msg = "security scan requires a Git work tree so ignore rules and candidate files are authoritative"
+        raise RuntimeError(msg)
+
+    paths: list[Path] = []
+    for raw_path in result.stdout.split(b"\0"):
+        if not raw_path:
+            continue
+        path = root / os.fsdecode(raw_path)
+        if path.is_file() and not path.is_symlink() and not should_skip_path(path, root):
+            paths.append(path)
+    return sorted(paths)
 
 
 def read_text(path: Path) -> str | None:
@@ -126,7 +140,7 @@ def read_text(path: Path) -> str | None:
 
 
 def is_blocked_env_file(path: Path) -> bool:
-    """Return True when a path is an environment file that must not be committed."""
+    """Return True when a candidate path is a prohibited environment file."""
     name = path.name
     return name not in ALLOWED_ENV_FILES and BLOCKED_ENV_FILE_RE.match(name) is not None
 
@@ -143,8 +157,8 @@ def shannon_entropy(value: str) -> float:
 
 def looks_like_placeholder(value: str) -> bool:
     """Return True for documented placeholders and intentionally fake values."""
-    lowered = value.lower()
-    return any(marker in lowered for marker in PLACEHOLDER_MARKERS)
+    lowered = value.lower().strip()
+    return lowered in PLACEHOLDER_VALUES or lowered.endswith(">") or lowered.startswith(PLACEHOLDER_PREFIXES)
 
 
 def looks_like_live_secret(value: str) -> bool:
@@ -169,7 +183,7 @@ def find_text_violations(path: Path, text: str) -> list[Violation]:
     """Scan a text file for high-confidence secret material."""
     violations: list[Violation] = []
     if is_blocked_env_file(path):
-        violations.append(Violation(path=path, line=1, message="committed .env file is prohibited"))
+        violations.append(Violation(path=path, line=1, message="tracked or unignored .env file is prohibited"))
 
     for line_number, line in enumerate(text.splitlines(), start=1):
         if PRIVATE_KEY_RE.search(line):
@@ -194,67 +208,6 @@ def find_text_violations(path: Path, text: str) -> list[Violation]:
     return violations
 
 
-def is_exception_handler_noop(node: ast.ExceptHandler) -> bool:
-    """Return True when an exception handler effectively ignores the exception."""
-    body = [item for item in node.body if not isinstance(item, ast.Expr) or not isinstance(item.value, ast.Constant)]
-    return len(body) == 1 and isinstance(body[0], ast.Pass)
-
-
-def is_exception_type(node: ast.ExceptHandler, name: str) -> bool:
-    """Return True when an exception handler catches a specific exception name."""
-    if isinstance(node.type, ast.Name):
-        return node.type.id == name
-    if isinstance(node.type, ast.Attribute):
-        return node.type.attr == name
-    return False
-
-
-class PythonSecurityVisitor(ast.NodeVisitor):
-    """Find Python security patterns that can be detected safely with AST."""
-
-    def __init__(self, path: Path) -> None:
-        self.path = path
-        self.violations: list[Violation] = []
-
-    def add(self, node: ast.AST, message: str) -> None:
-        self.violations.append(Violation(path=self.path, line=getattr(node, "lineno", 1), message=message))
-
-    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
-        if node.type is None:
-            self.add(node, "bare except is prohibited")
-        elif is_exception_type(node, "Exception") and is_exception_handler_noop(node):
-            self.add(node, "except Exception: pass is prohibited")
-
-        self.generic_visit(node)
-
-    def visit_Call(self, node: ast.Call) -> None:
-        for keyword in node.keywords:
-            if keyword.arg == "verify" and isinstance(keyword.value, ast.Constant) and keyword.value.value is False:
-                self.add(node, "TLS verification must not be disabled with verify=False")
-
-        if (
-            isinstance(node.func, ast.Attribute)
-            and node.func.attr == "md5"
-            and isinstance(node.func.value, ast.Name)
-            and node.func.value.id == "hashlib"
-        ):
-            self.add(node, "hashlib.md5 is prohibited in the security baseline")
-
-        self.generic_visit(node)
-
-
-def find_python_violations(path: Path, text: str) -> list[Violation]:
-    """Parse a Python file and return AST-backed security violations."""
-    try:
-        tree = ast.parse(text, filename=str(path))
-    except SyntaxError as exc:
-        return [Violation(path=path, line=exc.lineno or 1, message=f"cannot parse Python file: {exc.msg}")]
-
-    visitor = PythonSecurityVisitor(path)
-    visitor.visit(tree)
-    return visitor.violations
-
-
 def check_security_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
     """Check the repository for security baseline violations."""
     root = root.resolve()
@@ -265,15 +218,17 @@ def check_security_baseline(root: Path = PROJECT_ROOT) -> list[Violation]:
             continue
 
         violations.extend(find_text_violations(path, text))
-        if path.suffix == ".py":
-            violations.extend(find_python_violations(path, text))
 
     return violations
 
 
 def main() -> int:
     """CLI entry point."""
-    violations = check_security_baseline()
+    try:
+        violations = check_security_baseline()
+    except RuntimeError as exc:
+        print(f"security baseline failed: {exc}", file=sys.stderr)
+        return 1
     if not violations:
         return 0
 

@@ -1,25 +1,21 @@
 import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createMock, apiGet, interceptorUse } = vi.hoisted(() => ({
+const { createMock, apiGet, apiPost, interceptorUse } = vi.hoisted(() => ({
   createMock: vi.fn(),
   apiGet: vi.fn(),
+  apiPost: vi.fn(),
   interceptorUse: vi.fn(),
 }));
 
-vi.mock("axios", () => {
-  return {
-    default: { create: createMock },
-  };
-});
+vi.mock("axios", () => ({ default: { create: createMock } }));
 
 function queueClients() {
-  createMock
-    .mockReset()
-    .mockImplementation(() => ({
-      get: apiGet,
-      interceptors: { response: { use: interceptorUse } },
-    }));
+  createMock.mockReset().mockImplementation(() => ({
+    get: apiGet,
+    post: apiPost,
+    interceptors: { response: { use: interceptorUse } },
+  }));
 }
 
 describe("api client", () => {
@@ -27,25 +23,30 @@ describe("api client", () => {
     vi.resetModules();
     queueClients();
     apiGet.mockReset();
+    apiPost.mockReset();
     interceptorUse.mockClear();
   });
 
-  it("routes health checks through the versioned API client", async () => {
-    apiGet.mockResolvedValue({ data: { success: true } });
-
-    const { getHealth } = await import("./index");
-
-    await getHealth();
-
-    expect(apiGet).toHaveBeenCalledWith("/health");
-  });
-
-  it("creates a single v1 API client", async () => {
+  it("uses one versioned client", async () => {
     await import("./index");
 
     expect(axios.create).toHaveBeenCalledTimes(1);
     expect(axios.create).toHaveBeenCalledWith(
       expect.objectContaining({ baseURL: "/api/v1" }),
     );
+  });
+
+  it("routes task reads and writes through the API layer", async () => {
+    apiGet.mockResolvedValue({ data: { success: true, data: [] } });
+    apiPost.mockResolvedValue({ data: { success: true } });
+    const { createTask, listTasks } = await import("./index");
+
+    await listTasks();
+    await createTask({ title: "Keep the oracle independent" });
+
+    expect(apiGet).toHaveBeenCalledWith("/tasks");
+    expect(apiPost).toHaveBeenCalledWith("/tasks", {
+      title: "Keep the oracle independent",
+    });
   });
 });

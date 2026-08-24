@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Review PR without executing its code
         id: ocr
-        uses: alibaba/open-code-review@5829539379ecc3c2e43c36061b73469f7a261f8d # v1.8.5
+        uses: alibaba/open-code-review@4b6874bd23106b5c68bea6d230bb60303b9f0961 # v1.9.9
         with:
           llm_url: ${{ secrets.OCR_LLM_URL }}
           llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
